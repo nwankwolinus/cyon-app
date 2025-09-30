@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CYON SS Joachim and Anne Ijegun Web App</title>
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar">
+      <!-- <div class="nav-container"> -->
+      <div class="logo-section">
+        <!-- Logos -->
+        <div class="logo">
+          <img src="images/cyon-logo-png.png" alt="CYON Logo" class="logo" />
+          <img
+            src="images/ss-joachim-anne.jpeg"
+            alt="Ss Joachim and Anne Logo"
+            class="logo"
+          />
+        </div>
+        <!-- Title-->
+        <div class="logo-text">
+          <div class="org-name">
+            The Catholic Youth Organanization of Nigeria
+          </div>
+          <div class="church-name">
+            SS Joachim &amp; Anne Catholic Church Ijegun
+          </div>
+        </div>
+
+        <div class="nav-links" id="navlinks">
+          <button id="showFeedsBtn" title="Feeds">
+            <i class="fas fa-newspaper"></i>
+          </button>
+          <button id="showNotificationsBtn" title="Notifications">
+            <i class="fas fa-bell"></i>
+          </button>
+          <button id="showAttendanceBtn" title="Attendance">
+            <i class="fas fa-calendar-check"></i>
+          </button>
+          <button id="showDashboardBtn" title="Admin Dashboard">
+            <i class="fas fa-user-shield"></i>
+          </button>
+          <button id="showProfileBtn" title="Profile">
+            <i class="fas fa-user"></i>
+          </button>
+        </div>
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile dropdown menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#">Feeds</a>
+      <a href="#">Notifications</a>
+      <a href="#">Attendance</a>
+      <a href="#">Admin Dashboard</a>
+      <a href="#">My Profile</a>
+    </div>
+    <div id="feedContainer"></div>
+    
+    <!-- <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/main.js"></script> -->
+    <script src="js/nav.js"></script>
+  </body>
+</html>

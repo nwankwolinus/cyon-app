@@ -1,0 +1,3 @@
+GET http://localhost:5000/api/dues/all
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4Y2M3NjE0NGZjZGE1Y2IzNTQ5N2FkZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1ODQzODkxOCwiZXhwIjoxNzU4NDQyNTE4fQ.6oahRwsmmL3CsfhYnh7SUagqm_9JPxcmN4GnYI8vK2A
+

@@ -1,0 +1,7 @@
+POST http://localhost:5000/api/feeds
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4Y2M3NjE0NGZjZGE1Y2IzNTQ5N2FkZSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1ODU4MjgxMywiZXhwIjoxNzU4NTg2NDEzfQ.TEk9axKci8bVs9Tg8X5LeB4yDOM8RMGMeKZlFXOVayQ
+Content-Type: application/json
+
+{
+  "text": "Hello CYON family! First post"
+}
