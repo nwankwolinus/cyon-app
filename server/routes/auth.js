@@ -1,88 +1,115 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+// routes/auth.js
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
-// REGISTER
-router.post('/register', async (req, res) => {
+/**
+ * @route   POST /api/auth/register
+ * @desc    Register a new user
+ * @access  Public
+ */
+
+router.post("/register", async (req, res) => {
+  const { name, email, password, church, profilePic, gender, dob } = req.body;
+
   try {
-    const { name, email, password, role, church, profilePic } = req.body;
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ msg: "User already exists" });
+    }
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ msg: 'User already exists' });
-    } 
-
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
-    const newUser = new User({
+    user = new User({
       name,
       email,
       password: hashedPassword,
-      role,
       church,
-      profilePic: profilePic || "",
+      profilePic,
+      gender,
+      dob
     });
 
-    await newUser.save();
-    
-    // Respond with user (excluding password)
-    const { password: _, ...userWithoutPassword } = newUser.toObject();
+    await user.save();
+
+    const payload = { id: user.id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.status(201).json({
-       msg: 'User registered successfully',
-       user: userWithoutPassword 
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        church: user.church,
+        profilePic: user.profilePic,
+        gender: user.gender,
+        dob: user.dob
+      }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err.message);
+    res.status(500).send("Server error");
   }
 });
 
-// LOGIN
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
+/**
+ * @route   POST /api/auth/login
+ * @desc    Login user & return JWT
+ * @access  Public
+ */
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
 
-    // Find user
+  try {
+    // Check user
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
-    // Generate token
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Sign JWT
+    const payload = { id: user.id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    res.json({ token, user });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        church: user.church,
+        profilePic: user.profilePic
+      }
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err.message);
+    res.status(500).send("Server error");
   }
 });
 
-const auth = require('../middleware/auth');
-const authorizeRoles = require('../middleware/role');
-
-// GET Current User Profile (any logged-in user)
-router.get('/me', auth, async (req, res) => {
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get logged-in user
+ * @access  Private
+ */
+router.get("/me", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id).select("-password");
     res.json(user);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err.message);
+    res.status(500).send("Server error");
   }
 });
-
-// Example: Admin-only route
-router.get('/admin', auth, authorizeRoles('admin'), (req, res) => {
-  res.json({ msg: 'Welcome Admin, you have full access!' });
-});
-
 
 module.exports = router;

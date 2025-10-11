@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+            <input type="text" id="name" placeholder="Full Name" required />
+            <input type="email" id="email" placeholder="Email" required />
+            <input type="password" id="password" placeholder="Password" required />
+
+            <select id="gender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <select id="church" required>
+                <option value="" disabled selected>Select Church</option>
+                <option value="ss_joachim_and_anne">SS Joachim & Anne</option>
+                <option value="st_marys">St. Mary's Ijagemo</option>
+                <option value="st_brendan">St. Brendan Ifesowapo</option>
+            </select>  
+
+            <input type="date" id="dob" required>
+
+            <input type="text" id="profilePic" placeholder="Profile Picture URL (optional)">
+
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="login.html">login</a></p>
+        <div id="registerMessage"></div>
+    </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

@@ -9,6 +9,14 @@ const userSchema = new mongoose.Schema({
         enum: ['active', 'probation', 'admin'],
         default: 'probation'
     },
+
+    gender: {
+        type: String,
+        enum: ['male', 'female'],
+        required: true
+    },
+
+    dob: { type: Date, required: true },
     profilePic: { type: String, default: ''}, // store image URL
     church: {
         type: String,
