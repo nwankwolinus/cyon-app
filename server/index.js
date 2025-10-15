@@ -65,7 +65,8 @@ app.use('/api/admin', require('./routes/admin'));
 app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/dues", require("./routes/dues"));
 app.use("/api/users", require("./routes/users"));
-app.use("/api/feeds", require("./routes/feeds"));
+app.use('/api/feeds', require('./routes/feeds'));
+console.log('✅ Feeds routes loaded');
 app.use("/api/notifications", require("./routes/notifications"));
 
 // module export (optional)

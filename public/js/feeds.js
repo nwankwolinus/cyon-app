@@ -62,7 +62,7 @@ postForm.addEventListener("submit", async (e) => {
   feedContainer.insertAdjacentHTML("afterbegin", feedHTML);
 
   // Notify all connected clients via Socket.IO
-  socket.emit("newFeed", newFeed);
+  // socket.emit("newFeed", newFeed);
 });
 
 // To prevent flickering when both fetchFeeds() and the socket event fire close together

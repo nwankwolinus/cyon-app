@@ -172,7 +172,7 @@ router.post("/:id/comment", auth, async (req, res) => {
       "comments.user",
       "name profilePic"
     );
-    const newComment = populatedFeed.comments.slice(-1)[0];
+    const newComment = populatedFeed.comments[populatedFeed.comments.length - 1];
 
     // Send notification (non-blocking)
     if (feed.user.toString() !== req.user.id) {
@@ -193,9 +193,9 @@ router.post("/:id/comment", auth, async (req, res) => {
         _id: newComment._id,
         text: newComment.text,
         user: {
-          _id: req.user.id,
-          name: req.user.name,
-          profilePic: req.user.profilePic,
+          _id: newComment.user._id,
+          name: newComment.user.name,
+          profilePic: newComment.user.profilePic,
         },
       },
     });

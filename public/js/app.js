@@ -69,11 +69,15 @@ export async function commentOnFeed(id, text) {
       body: JSON.stringify({ text }),
     });
 
-    if (!res.ok) throw new Error("Failed to post comment");
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Failed to post comment: ${res.status} - ${errorText}`);
+    } 
+
     return await res.json();
   } catch (err) {
     console.error("Error commenting on feed:", err);
-    return null;
+    throw err;
   }
 }
 
@@ -94,7 +98,7 @@ export async function createFeed(formData) {
       },
       body: formData, // FormData handles image upload automatically
     });
-
+ 
     // Handle expired/invalid token
     if (res.status === 401) {
       alert("Session expired. Please log in again.");
@@ -108,19 +112,10 @@ export async function createFeed(formData) {
       throw new Error(`Failed to create post: ${msg}`);
     }
 
-    let data;
-    try {
-      data = await res.json();
-    } catch {
-      data = { success: true };
-    }
+    return await res.json();
 
-
-
-    return data;
   } catch (err) {
     console.error("Error creating feed:", err);
-    alert("Something went wrong while creating your post.");
     return null;
   }
 }

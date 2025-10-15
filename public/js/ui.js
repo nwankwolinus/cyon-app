@@ -176,21 +176,25 @@ function attachFeedListeners() {
       const text = input.value.trim();
       if (!text) return;
 
-      const newComment = await commentOnFeed(feedId, text);
-      if (newComment) {
-        const commentsList = document.querySelector(
-          `#comments-${feedId} .comments-list`
-        );
-        const div = document.createElement("div");
-        div.className = "comment";
-        const commenterName =
-          newComment?.user?.name ||
-          JSON.parse(localStorage.getItem("user"))?.name ||
-          "You";
+      // Show loading state
+      const originalHTML = btn.innerHTML;
 
-        div.innerHTML = `<b>${commenterName}:</b> ${newComment.text}`;
-        commentsList.appendChild(div);
-        input.value = ""; // clear input after posting
+      // Show loading state
+      btn.innerHTML = "Posting...";
+      btn.disabled = true;
+      input.value = ""; // Clear input
+
+      try {
+        await commentOnFeed(feedId, text);
+        // Socket.IO will handle adding the comment
+      } catch (error) {
+        console.error('Failed to post comment;', error);
+        input.value = text; // Put the text back so user doesn't lose it
+        alert('Failed to post comment. Please try again.')
+      } finally {
+        // Always reset button state - even if there's an error
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
       }
     };
   });

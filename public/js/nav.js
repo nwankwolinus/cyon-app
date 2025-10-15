@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const backendBaseUrl =
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1"
-      ? "http://localhost:5000" // local dev
+      ? "http://localhost:5001" // local dev
       : window.location.origin; // same server if deployed
 
   // Function to load feeds
