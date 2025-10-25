@@ -78,7 +78,7 @@
           placeholder="What's on your mind?"
           rows="3"
         ></textarea>
-        <img id="preview" style="display:none; max-width:200px; margin-top:10px;" />
+        <img id="preview" style="display:none; max-width:200px; margin-top:10px;" alt="Image Preview" />
         <input type="file" id="postImage" accept="image/*" />
         <button type="submit">Post</button>
       </form>
@@ -88,12 +88,15 @@
     <div id="feedContainer"></div>
 
     <!-- Scripts -->
+    <!-- Load Socket.IO first as it's a global dependency -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    
+    <!-- Load feeds.js as a MODULE first - this is your main app -->
+    <script type="module" src="./js/feeds.js"></script>
+    
+    <!-- Load other scripts AFTER the main module -->
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/nav.js"></script>
-
-    <!-- Replace main.js with feeds.js -->
-    <script type="module" src="./js/feeds.js"></script>
   </body>
 </html>

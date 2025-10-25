@@ -1,18 +1,14 @@
-// app.js - API functions with automatic backend URL detection
+// app.js - API functions using shared utilities
+import { getBackendBaseUrl, redirectToLogin, getToken } from './utils.js';
 
-// Detect backend base URL automatically (works for local dev and production)
-const backendBaseUrl =
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5001"
-    : window.location.origin;
-
+// Get base URL from shared utility
+const backendBaseUrl = getBackendBaseUrl();
 const API_FEEDS = `${backendBaseUrl}/api/feeds`;
 
 // Fetch feeds
 export async function fetchFeeds(page = 1) {
   try {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     const res = await fetch(`${API_FEEDS}?page=${page}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -20,11 +16,8 @@ export async function fetchFeeds(page = 1) {
       },
     });
 
-    // Handle expired/invalid token
     if (res.status === 401) {
-      alert("Session expired. Please log in again.");
-      localStorage.removeItem("token");
-      window.location.href = "login.html";
+      redirectToLogin();
       return [];
     }
 
@@ -36,10 +29,35 @@ export async function fetchFeeds(page = 1) {
   }
 }
 
+// Fetch a single feed by ID
+export async function fetchFeedById(feedId) {
+  try {
+    const token = getToken();
+    const res = await fetch(`${API_FEEDS}/${feedId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (res.status === 401) {
+      redirectToLogin();
+      return null;
+    }
+
+    if (!res.ok) throw new Error(`Failed to fetch feed ${feedId}: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("Error fetching single feed:", err);
+    return null;
+  }
+}
+
 // Like feed
 export async function likeFeed(id) {
   try {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     const res = await fetch(`${API_FEEDS}/${id}/like`, {
       method: "POST",
       headers: {
@@ -48,6 +66,11 @@ export async function likeFeed(id) {
       },
     });
 
+    if (res.status === 401) {
+      redirectToLogin();
+      return null;
+    }
+    
     if (!res.ok) throw new Error("Failed to like post");
     return await res.json();
   } catch (err) {
@@ -59,7 +82,7 @@ export async function likeFeed(id) {
 // Comment on feed
 export async function commentOnFeed(id, text) {
   try {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     const res = await fetch(`${API_FEEDS}/${id}/comment`, {
       method: "POST",
       headers: {
@@ -68,6 +91,11 @@ export async function commentOnFeed(id, text) {
       },
       body: JSON.stringify({ text }),
     });
+
+    if (res.status === 401) {
+      redirectToLogin();
+      return null;
+    }
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -81,41 +109,145 @@ export async function commentOnFeed(id, text) {
   }
 }
 
-// Create a new feed (text + optional image)
+// Create a new feed (text + optional image) - FIXED VERSION
 export async function createFeed(formData) {
+  console.log('🔄 createFeed function STARTED');
+
   try {
-    const token = localStorage.getItem("token");
+    const token = getToken();
+
     if (!token) {
-      alert("Please log in before posting.");
-      window.location.href = "login.html";
-      return;
+      console.error('❌ No token found');
+      return { success: false, error: "No authentication token", shouldRedirect: true };
     }
 
-    const res = await fetch(`${API_FEEDS}`, {
+    console.log('🎯 Making request to:', API_FEEDS);
+
+    const response = await fetch(`${API_FEEDS}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: formData, // FormData handles image upload automatically
+      body: formData,
+    });
+
+    console.log('📨 Response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok
     });
  
-    // Handle expired/invalid token
-    if (res.status === 401) {
-      alert("Session expired. Please log in again.");
-      localStorage.removeItem("token");
-      window.location.href = "login.html";
-      return;
+    if (response.status === 401) {
+      console.error('❌ 401 Unauthorized');
+      return { success: false, error: "Session expired", shouldRedirect: true };
     }
 
-    if (!res.ok) {
-      const msg = await res.text();
-      throw new Error(`Failed to create post: ${msg}`);
+    if (!response.ok) {
+      console.error('🚨 Response not OK');
+      const msg = await response.text().catch(() => "Server did not provide detailed error");
+      console.error('📝 Error response body:', msg);
+      return { success: false, error: `Failed to create post: ${msg}`, shouldRedirect: false }; // ✅ RETURN
     }
-
-    return await res.json();
+    
+    console.log('✅ Response OK, parsing JSON...');
+    const result = await response.json();
+    console.log('🎉 createFeed SUCCESS - Result:', result);
+    return { success: true, data: result }; // ✅ RETURN
 
   } catch (err) {
-    console.error("Error creating feed:", err);
+    console.error("💥 createFeed COMPLETE FAILURE:", err);
+    return { success: false, error: err.message, shouldRedirect: false }; // ✅ RETURN
+  }
+}
+
+// Delete feed
+export async function deleteFeed(feedId) {
+  try {
+    const token = getToken(); // ✅ FIXED: Use getToken() instead of localStorage
+    console.log('🔄 Starting delete for feed:', feedId);
+    
+    const response = await fetch(`${API_FEEDS}/${feedId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log('📨 Response status:', response.status);
+    
+    if (response.ok) {
+      try {
+        const result = await response.json();
+        console.log('✅ Delete successful:', result);
+        return true; 
+      } catch (e) {
+        console.log('✅ Delete successful (no content)');
+        return true;
+      }
+    } else {
+      const errorText = await response.text().catch(() => "Unknown error");
+      console.error('🚨 Server error:', errorText);
+      throw new Error(`Failed to delete post: ${response.status} - ${errorText}`);
+    }
+    
+  } catch (err) {
+    console.error("❌ Error in deleteFeed:", err);
+    return false;
+  }
+}
+
+// Delete a comment
+export async function deleteComment(feedId, commentId) {
+  try {
+    const token = getToken();
+    const res = await fetch(`${API_FEEDS}/${feedId}/comment/${commentId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (res.status === 401) {
+      redirectToLogin();
+      return null;
+    }
+
+    if (!res.ok) throw new Error("Failed to delete comment");
+    return await res.json();
+  } catch (err) {
+    console.error("Error deleting comment:", err);
+    return null;
+  }
+}
+
+// Update a feed
+export async function updateFeed(feedId, formData) {
+  try {
+    const token = getToken();
+    const response = await fetch(`${API_FEEDS}/${feedId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      redirectToLogin();
+      return null;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "Server returned error without details");
+      throw new Error(`Failed to update feed: ${response.status} - ${errorText}`);
+    }
+
+    return await response.json(); 
+    
+  } catch (error) {
+    console.error("API Error updating feed:", error);
     return null;
   }
 }

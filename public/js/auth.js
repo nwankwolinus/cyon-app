@@ -1,11 +1,11 @@
 // auth.js - Authentication functions with automatic backend URL detection
 
-// Detect backend base URL automatically
+// Note: Standardized to include port 5001 for consistency across environments.
 const backendBaseUrl =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:5001"
-    : window.location.origin;
+    : `${window.location.protocol}//${window.location.hostname}:5001`;
 
 // === Register ===
 const registerForm = document.getElementById("registerForm");
@@ -21,6 +21,8 @@ if (registerForm) {
     const profilePic = document.getElementById("profilePic").value;
 
     const msgDiv = document.getElementById("registerMessage");
+    msgDiv.textContent = "Registering...";
+    msgDiv.style.color = "gray";
 
     try {
       const res = await fetch(`${backendBaseUrl}/api/auth/register`, {
@@ -34,7 +36,7 @@ if (registerForm) {
       if (!res.ok) throw new Error(data.msg || "Registration failed");
       
       msgDiv.style.color = "green";
-      msgDiv.textContent = " Registration successful! Redirecting...";
+      msgDiv.textContent = "Registration successful! Redirecting to login...";
       setTimeout(() => (window.location.href = "login.html"), 1500);
     } catch (err) {
       msgDiv.style.color = "red";
@@ -51,6 +53,8 @@ if (loginForm) {
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
     const msgDiv = document.getElementById("loginMessage");
+    msgDiv.textContent = "Logging in...";
+    msgDiv.style.color = "gray";
 
     try {
       const res = await fetch(`${backendBaseUrl}/api/auth/login`, {
@@ -62,17 +66,19 @@ if (loginForm) {
 
       if (!res.ok) throw new Error(data.msg || "Login failed");
 
-      // Validate token before storing
       if (data.token) {
         try {
-          // Basic token validation
-          const payload = JSON.parse(atob(data.token.split('.')[1]));
+          const tokenParts = data.token.split('.');
+          if (tokenParts.length !== 3) throw new Error("Token format invalid.");
+          
+          const payload = JSON.parse(atob(tokenParts[1]));
           const isExpired = payload.exp * 1000 < Date.now();
           
           if (!isExpired) {
-            // Save JWT + user info in localStorage
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            // CRITICAL FIX: Save the entire user object INCLUDING the token under the 'user' key.
+            // This aligns with the expected structure of utils.js's getToken().
+            const userWithToken = { ...data.user, token: data.token }; 
+            localStorage.setItem("user", JSON.stringify(userWithToken));
 
             msgDiv.style.color = "green";
             msgDiv.textContent = "Login successful! Redirecting...";
@@ -83,6 +89,7 @@ if (loginForm) {
         } catch (tokenErr) {
           msgDiv.style.color = "red";
           msgDiv.textContent = "Invalid authentication token received";
+          console.error("Token error:", tokenErr);
         }
       } else {
         throw new Error("No authentication token received");
@@ -96,24 +103,28 @@ if (loginForm) {
 
 // === Logout Function ===
 function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+  // CRITICAL FIX: Only remove the single 'user' key
+  localStorage.removeItem("user"); 
   window.location.href = "login.html";
 }
 
 // === Check Authentication Status ===
 function isAuthenticated() {
-  const token = localStorage.getItem("token");
+  const userData = localStorage.getItem("user");
+  if (!userData) return false;
+  
+  const user = JSON.parse(userData);
+  const token = user.token; // Check the token nested inside the 'user' object
   if (!token) return false;
 
   try {
     // Validate token expiration
     const payload = JSON.parse(atob(token.split('.')[1]));
+    // Check if the token is not expired
     return payload.exp * 1000 > Date.now();
   } catch (err) {
     // If token is invalid, remove it and return false
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("user"); 
     return false;
   }
 }
@@ -124,7 +135,7 @@ function getCurrentUser() {
   return user ? JSON.parse(user) : null;
 }
 
-// === Auto-redirect if already authenticated ===
+// === Auto-redirect if already authenticated (CRITICAL: MUST check single 'user' key) ===
 if (window.location.pathname.includes('login.html') || 
     window.location.pathname.includes('register.html')) {
   if (isAuthenticated()) {
@@ -132,7 +143,7 @@ if (window.location.pathname.includes('login.html') ||
   }
 }
 
-// === Protect feed pages ===
+// === Protect feed pages (CRITICAL: MUST check single 'user' key) ===
 if (window.location.pathname.includes('feeds.html')) {
   if (!isAuthenticated()) {
     window.location.href = "login.html";
