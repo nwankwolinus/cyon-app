@@ -33,54 +33,91 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
   console.log('🚀 POST /api/feeds REQUEST RECEIVED');
   
   try {
+    // 1. Safely access body properties. This prevents the "Cannot read properties of undefined" crash.
+    const { text, type, originalFeedId } = req.body || {}; 
+    const isReshare = type === 'reshare';
+
     // Log request details
     console.log('📨 Request details:', {
-      method: req.method,
-      url: req.url,
-      user: req.user ? { id: req.user.id, name: req.user.name, role: req.user.role } : 'No user',
-      body: req.body ? { text: req.body.text, hasText: !!req.body.text } : 'No body',
-      file: req.file ? { originalname: req.file.originalname, size: req.file.size } : 'No file'
+      user: req.user ? { id: req.user.id } : 'No user',
+      body: { text: text, type: type, originalFeedId: originalFeedId },
+      file: req.file ? { originalname: req.file.originalname } : 'No file'
     });
 
-    // Validation
-    if (!req.body.text && !req.file) {
-      console.log('❌ Validation failed: No text and no image');
+    // 2. Validation: Check if it's a regular post OR a reshare
+    if (!isReshare && !text && !req.file) {
+      console.log('❌ Validation failed: Post must contain text or an image (and is not a reshare)');
       return res.status(400).json({ error: "Post must contain text or an image" });
     }
-
-    const imageUrl = req.file
-      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
-      : null;
     
-    console.log('🖼️ Image URL:', imageUrl);
-
-    const feed = new Feed({
+    // --- Image Handling Logic ---
+    let finalImageUrl = null;
+    
+    // Scenario A: New post with image upload
+    if (req.file) {
+        finalImageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+        console.log('🖼️ New Image URL:', finalImageUrl);
+    } 
+    
+    // Scenario B: Reshare - Inherit original image
+    else if (isReshare && originalFeedId) {
+        console.log(`🔗 Reshare detected. Fetching original feed ${originalFeedId} to inherit image.`);
+        const originalFeed = await Feed.findById(originalFeedId);
+        
+        if (!originalFeed) {
+            console.log('❌ Reshare failed: Original feed not found.');
+            return res.status(404).json({ error: "Original feed not found for reshare." });
+        }
+        
+        // 🟢 FIX: Inherit the image URL from the original post
+        finalImageUrl = originalFeed.image; 
+        
+        // Ensure the reshare text has a default if the user didn't type one on the frontend
+        // Note: The frontend should send text, but this acts as a backup safeguard.
+        // We use the safely extracted 'text' or provide a default.
+        req.body.text = text || `Shared post from feed ${originalFeedId}`;
+    }
+    
+    // --- Create Feed Data Object ---
+    const feedData = {
       user: req.user.id,
-      text: req.body.text || "",
-      image: imageUrl,
-    });
+      text: req.body.text || "", 
+      image: finalImageUrl, // Use the determined image URL
+    };
+    
+    // 3. Add reshare properties if it is a reshare
+    if (isReshare && originalFeedId) {
+        feedData.type = 'reshare'; 
+        // 🟢 CRUCIAL: Link the new post to the original post ID
+        feedData.originalFeed = originalFeedId; 
+    }
+
+    const feed = new Feed(feedData);
     
     console.log('💾 Saving feed to database...');
     await feed.save();
 
     console.log('👤 Populating user data...');
-    await feed.populate("user", "name profilePic church");
+    await feed.populate("user", "name profilePic church"); 
 
-    console.log('📢 Creating notification...');
-    await Notification.create({
-      user: feed.user,
-      from: req.user.id,
-      type: "post",
-      feed: feed._id,
-      text: `${req.user.name} created a new post`,
-    });
+    // --- Notification (Only for new original posts) ---
+    if (!isReshare) {
+        console.log('📢 Creating notification for new post...');
+        await Notification.create({
+          user: feed.user,
+          from: req.user.id,
+          type: "post",
+          feed: feed._id,
+          text: `${req.user.name} created a new post`,
+        });
+    }
 
     const formatted = formatFeed(feed);
-    console.log('✅ Feed created:', { id: formatted._id, text: formatted.text, hasImage: !!formatted.image });
+    console.log('✅ Feed created:', { id: formatted._id, text: formatted.text, isReshare: isReshare, hasImage: !!formatted.image });
 
     console.log('📡 Broadcasting via Socket.IO...');
     const io = req.app.get("io");
-    io.emit("newFeed", formatted);
+    io.emit("newFeed", formatted); 
     
     console.log('📤 Sending response to client...');
     res.status(201).json(formatted);
@@ -88,7 +125,7 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     console.log('🎉 REQUEST COMPLETED SUCCESSFULLY');
 
   } catch (err) {
-    console.error('💥 REQUEST FAILED:', err);
+    console.error('💥 REQUEST FAILED:', err.stack);
     res.status(500).json({ error: err.message });
   }
 });

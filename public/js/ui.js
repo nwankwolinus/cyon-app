@@ -5,7 +5,8 @@ import {
     deleteComment, 
     deleteFeed, 
     updateFeed, 
-    fetchFeedById 
+    fetchFeedById, 
+    createFeed
 } from "./app.js";
 
 // Import rendering functions from ui.js itself for internal use,
@@ -489,15 +490,65 @@ async function handleShareOptionClick(feedId, target) {
 
     switch (target) {
         case 'profile':
-            // 💡 TO DO: Call an API function to send post ID to a user/profile
-            console.log(`API Call: Share post ${feedId} to another user profile.`);
-            alert("Feature: Sent to selected profile successfully!");
+            // 1. 🚨 INTERACTIVE STEP: Get the target profile ID/Username
+            const targetProfile = prompt("Enter the Username or ID of the profile to share with:");
+
+            if (targetProfile) {
+                console.log(`User selected profile: ${targetProfile}`);
+                
+                // 2. 🚨 API CALL: Use createFeed to submit the share request
+                try {
+                    await createFeed({
+                        type: 'share', // Signal to the backend this is a share/repost
+                        originalFeedId: feedId,
+                        targetUser: targetProfile, // Send the chosen target
+                        text: `Shared a post with you!` // Optional text
+                    });
+                    console.log(`✅ API Call: Share post ${feedId} to profile ${targetProfile} successful.`);
+                    alert(`Post successfully sent to ${targetProfile}!`);
+                } catch (error) {
+                    console.error("Error sharing to profile:", error);
+                    alert("Error: Could not share post to profile.");
+                }
+            } else {
+                // User clicked cancel on the prompt
+                console.log("Share to profile cancelled.");
+            }
             break;
 
         case 'feeds':
-            // 💡 TO DO: Call an API function to re-post/cross-post this post
-            console.log(`API Call: Re-post ${feedId} to main feeds page.`);
-            alert("Feature: Re-posted to your feeds page successfully!");
+            console.log(`API Call: Preparing to Re-post feed ${feedId} to main feeds page.`);
+
+            try {
+                // 1. Prepare the data fields (Required by the backend validation)
+                const reshareData = {
+                    type: 'reshare',
+                    originalFeedId: feedId,
+                    // The backend requires a 'text' field, even if it's just a default message.
+                    text: `Shared post from feed ${feedId}. Check it out!`, 
+                };
+
+                // 2. 🟢 FIX: Convert the data to a FormData object.
+                // This is mandatory because the backend route uses Multer (upload.single('image')).
+                const formData = new FormData();
+                formData.append('type', reshareData.type);
+                formData.append('originalFeedId', reshareData.originalFeedId);
+                formData.append('text', reshareData.text);
+                
+                // If you had a mechanism to allow the user to add custom text, 
+                // you would append that here instead of the default.
+
+                // 3. Call your API function with the FormData object.
+                // IMPORTANT: Ensure your `createFeed` utility does *not* set the 'Content-Type' 
+                // header (browser will set it automatically to 'multipart/form-data' boundary).
+                await createFeed(formData); 
+                
+                console.log(`✅ API Call: Re-post ${feedId} to feeds page successful.`);
+                alert("Post successfully re-posted to your feeds page!");
+            } catch (error) {
+                console.error("Error re-posting to feeds:", error);
+                alert("Error: Could not re-post to feeds page.");
+            }
             break;
 
         case 'external':
