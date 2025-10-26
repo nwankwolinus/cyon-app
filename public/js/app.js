@@ -251,3 +251,31 @@ export async function updateFeed(feedId, formData) {
     return null;
   }
 }
+
+// Add to app.js
+export async function togglePinFeed(feedId) {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No authentication token found');
+        }
+
+        const response = await fetch(`/api/feeds/${feedId}/toggle-pin`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to toggle pin status');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error toggling pin status:', error);
+        throw error;
+    }
+}

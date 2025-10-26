@@ -70,33 +70,64 @@
     <!-- Logout Button -->
     <button id="logoutBtn">Logout</button>
 
-    <!-- Post Form -->
-    <section id="createPostSection">
-      <form id="postForm" enctype="multipart/form-data">
-        <textarea
-          id="postText"
-          placeholder="What's on your mind?"
-          rows="3"
-        ></textarea>
-        <img id="preview" style="display:none; max-width:200px; margin-top:10px;" alt="Image Preview" />
-        <input type="file" id="postImage" accept="image/*" />
-        <button type="submit">Post</button>
-      </form>
-    </section>
+    <!-- Main Content Area -->
+    <main id="mainContent">
+      <!-- Post Form -->
+      <section id="createPostSection" class="content-section active">
+        <form id="postForm" enctype="multipart/form-data">
+          <textarea
+            id="postText"
+            placeholder="What's on your mind?"
+            rows="3"
+          ></textarea>
+          <img id="preview" style="display:none; max-width:200px; margin-top:10px;" alt="Image Preview" />
+          <input type="file" id="postImage" accept="image/*" />
+          <button type="submit">Post</button>
+        </form>
+      </section>
 
-    <!-- Feeds Container -->
-    <div id="feedContainer"></div>
+      <!-- Feeds Container -->
+      <section id="feedsSection" class="content-section active">
+        <div id="feedContainer">
+          <!-- Feeds will be loaded here by JavaScript -->
+          <div class="loading-message">Loading feeds...</div>
+        </div>
+      </section>
+
+      <!-- Other sections (initially hidden) -->
+      <section id="notificationsSection" class="content-section">
+        <h2>Notifications</h2>
+        <div id="notificationsContainer"></div>
+      </section>
+
+      <section id="attendanceSection" class="content-section">
+        <h2>Attendance</h2>
+        <div id="attendanceContainer"></div>
+      </section>
+
+      <section id="dashboardSection" class="content-section">
+        <h2>Admin Dashboard</h2>
+        <div id="dashboardContainer"></div>
+      </section>
+
+      <section id="profileSection" class="content-section">
+        <h2>My Profile</h2>
+        <div id="profileContainer"></div>
+      </section>
+    </main>
 
     <!-- Scripts -->
     <!-- Load Socket.IO first as it's a global dependency -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     
-    <!-- Load feeds.js as a MODULE first - this is your main app -->
+    <!-- Load utility scripts first -->
+    <script src="js/auth.js"></script>
+    <script src="js/nav.js"></script>
+    
+    <!-- Load feeds.js as a MODULE LAST - after DOM is ready -->
     <script type="module" src="./js/feeds.js"></script>
     
-    <!-- Load other scripts AFTER the main module -->
-    <script src="js/auth.js"></script>
+    <!-- Load other scripts -->
     <script src="js/dashboard.js"></script>
-    <script src="js/nav.js"></script>
   </body>
 </html>

@@ -294,37 +294,42 @@ async function handleDeleteComment(feedId, commentId) {
 }
 
 async function handlePinPost(feedId) {
-  console.log("📌 Pin post clicked:", feedId);
-  alert("Pin functionality will be implemented soon!");
+  console.log('📌 Pin/Unpin post clicked:', feedId);
+  
+  const pinBtn = document.querySelector(`.pin-post[data-id="${feedId}"]`);
+  if (!pinBtn) return;
 
-  // Close menu
-  document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
-    menu.classList.remove("show");
-  });
-}
-
-async function handleLikeClick(feedId, likeBtn) {
-  // Add temporary feedback class
-  likeBtn.classList.add("liking");
-  likeBtn.disabled = true;
+  const originalText = pinBtn.textContent;
+  pinBtn.textContent = 'Updating...';
+  pinBtn.disabled = true;
 
   try {
-    const result = await likeFeed(feedId);
-    if (!result) return;
-
-    // Update like count immediately on UI
-    const stats = likeBtn.closest(".feed-item")?.querySelector(".feed-stats");
-    if (stats) {
-      const text = stats.textContent;
-      // Using a regex to reliably find and replace the like count
-      const newText = text.replace(/👍\s*\d+/, `👍 ${result.likeCount}`);
-      stats.textContent = newText;
+    const result = await togglePinFeed(feedId);
+    
+    if (result) {
+      // Update the button text immediately
+      pinBtn.textContent = result.feed.isPinned ? '📌 Unpin Post' : '📌 Pin Post';
+      
+      // Show success message
+      alert(`Post ${result.feed.isPinned ? 'pinned' : 'unpinned'} successfully!`);
+      
+      // Refresh the feeds to show pinned posts at top
+      const feeds = await fetchFeeds();
+      renderFeeds(feeds);
+    } else {
+      throw new Error('Pin operation failed');
     }
-  } catch (err) {
-    console.error("Error liking post:", err);
+  } catch (error) {
+    console.error('Pin operation failed:', error);
+    alert('Failed to update pin status: ' + error.message);
+    pinBtn.textContent = originalText;
   } finally {
-    likeBtn.classList.remove("liking");
-    likeBtn.disabled = false;
+    pinBtn.disabled = false;
+    
+    // Close menu
+    document.querySelectorAll('.menu-dropdown.show').forEach(menu => {
+      menu.classList.remove('show');
+    });
   }
 }
 
@@ -722,7 +727,17 @@ export function renderFeeds(feeds) {
     return;
   }
 
-  feeds.forEach((feed) => {
+  // 🟢 ENHANCED: Sort feeds with better pinned post handling
+  const sortedFeeds = sortFeeds(feeds);
+
+  console.log('📌 Sorted feeds:', sortedFeeds.map(f => ({ 
+    id: f._id, 
+    pinned: f.isPinned, 
+    date: f.createdAt,
+    pinnedAt: f.pinnedAt
+  })));
+
+  sortedFeeds.forEach((feed) => {
     const card = document.createElement("div");
     card.className = "feed-item";
     card.id = `feed-${feed._id}`;
@@ -808,7 +823,10 @@ function generateFeedHTML(feed) {
           <img src="${feed.user?.profilePic || "./images/default-avatar.png"}" 
                 alt="User Avatar" class="avatar" />
           <div>
-            <h4 class="username">${feed.user?.name || "Unknown User"}</h4>
+            <h4 class="username">
+                ${feed.user?.name || "Unknown User"}
+                ${currentUser.role === 'admin' ? '<span class="admin-badge">ADMIN</span>' : ''}
+            </h4>
             <span class="churchAttend">${feed.user?.church || ""}</span>
             <span class="timestamp">${timeAgo(feed.createdAt)}</span>
           </div>
@@ -866,7 +884,7 @@ function generateMenuHTML(feed, canEdit, canPin, canDelete) {
         ${
           canPin
             ? `<button class="menu-item pin-post" data-id="${feed._id}">📌 ${
-                feed.isPinned ? "Unpin Post" : "Pin Post"
+                feed.isPinned ? "📌 Unpin Post" : "📌 Pin Post"
               }</button>`
             : ""
         }
@@ -1009,6 +1027,25 @@ function closeShareModal(feedId) {
   if (modal) {
     modal.style.display = "none";
   }
+}
+
+// 🟢 NEW: Separate sorting function for better organization
+function sortFeeds(feeds) {
+  return [...feeds].sort((a, b) => {
+    // Both pinned - sort by pin date (newest pinned first)
+    if (a.isPinned && b.isPinned) {
+      const aPinDate = a.pinnedAt || a.updatedAt || a.createdAt;
+      const bPinDate = b.pinnedAt || b.updatedAt || b.createdAt;
+      return new Date(bPinDate) - new Date(aPinDate);
+    }
+    
+    // Only one pinned - pinned comes first
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    
+    // Neither pinned - sort by creation date (newest first)
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 }
 
 function timeAgo(dateString) {

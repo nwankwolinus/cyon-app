@@ -157,24 +157,37 @@ socket.on("commentDeleted", ({ feedId, commentId }) => {
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('🔧 DOM loaded - initializing feeds.js');
   
-  // Initialize DOM elements
+  // Wait a bit for DOM to be fully ready
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // Initialize DOM elements with null checks
   postForm = document.getElementById("postForm");
   postText = document.getElementById("postText");
   postImage = document.getElementById("postImage");
   preview = document.getElementById("preview");
 
-  if (!postForm) {
-    console.error('❌ CRITICAL: postForm element not found!');
+  console.log('🔍 DOM Elements found:', {
+    postForm: !!postForm,
+    postText: !!postText,
+    postImage: !!postImage,
+    preview: !!preview,
+    feedContainer: !!document.getElementById("feedContainer")
+  });
+
+  if (!postForm || !document.getElementById("feedContainer")) {
+    console.error('❌ CRITICAL: Required DOM elements not found!');
+    console.error('   postForm:', !!postForm);
+    console.error('   feedContainer:', !!document.getElementById("feedContainer"));
     return;
   }
 
-  // Set up event listeners
-  setupImagePreview();
-  setupFormSubmission();
-
-  // Initialize UI event delegation (handles all clicks: like, comment, edit, delete)
+  // Initialize UI event delegation
   console.log('🎯 Initializing UI event delegation...');
   initializeUI();
+
+  // Set up form listeners
+  setupImagePreview();
+  setupFormSubmission();
 
   // Load initial feeds
   console.log('📥 Loading initial feeds...');
@@ -182,6 +195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const feeds = await fetchFeeds();
     if (feeds) {
         renderFeeds(feeds);
+        console.log('✅ Feeds rendered successfully');
     }
   } catch (error) {
     console.error('Failed to fetch initial feeds:', error);
@@ -264,4 +278,44 @@ function setupFormSubmission() {
       postImage.disabled = false;
     } 
   });
+}
+
+// In your feeds.js or wherever you handle socket events
+export function setupFeedSocketHandlers(socket) {
+    // Handle pin updates from server
+    socket.on('feedPinned', (pinnedFeed) => {
+        console.log('📌 Received feed pinned update:', pinnedFeed._id);
+        updateFeedInUI(pinnedFeed);
+    });
+
+    socket.on('feedUnpinned', (unpinnedFeed) => {
+        console.log('📌 Received feed unpinned update:', unpinnedFeed._id);
+        updateFeedInUI(unpinnedFeed);
+    });
+
+    socket.on('feedUpdated', (updatedFeed) => {
+        // This handles any feed update including pin status
+        if (updatedFeed.isPinned !== undefined) {
+            console.log('📌 Received feed update with pin status:', updatedFeed._id, updatedFeed.isPinned);
+            updateFeedInUI(updatedFeed);
+        }
+    });
+}
+
+function updateFeedInUI(updatedFeed) {
+    const feedElement = document.getElementById(`feed-${updatedFeed._id}`);
+    if (feedElement) {
+        // Check if we're currently editing this feed
+        if (feedElement.dataset.editing !== 'true') {
+            // Re-render the feed card with updated data
+            feedElement.innerHTML = generateFeedHTML(updatedFeed);
+        }
+    } else {
+        // If feed doesn't exist, it might be a new pinned post
+        // Refresh the feeds to maintain proper sorting
+        setTimeout(async () => {
+            const feeds = await fetchFeeds();
+            renderFeeds(feeds);
+        }, 100);
+    }
 }
