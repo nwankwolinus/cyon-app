@@ -470,3 +470,52 @@ body {
 .close-modal-btn:hover {
     background: #d97706;
 }
+
+/* style.css */
+
+/* 1. Add a distinct border or background to the entire card */
+.feed-post.reshared-feed { /* Assuming .feed-post is the main container, changed from .feed-card */
+    border: 1px solid #cce5ff; /* Light blue border */
+    background-color: #f8fcff; /* Very light background color */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Optional: Subtle shadow for depth */
+}
+
+/* 2. Style the indicator bar */
+.feed-reshare-indicator {
+    /* Pull it to the edges of the card (adjust margin based on your card padding, typically 15px) */
+    margin: -15px -15px 15px -15px; 
+    padding: 8px 15px;
+    background-color: #e6f2ff; /* Clear blue background */
+    border-bottom: 1px solid #cce5ff;
+    color: #004085;
+    font-size: 0.9em;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    /* Ensure the content is visible above the card content */
+    z-index: 2; 
+}
+
+/* Style the retweet icon */
+.feed-reshare-indicator i {
+    margin-right: 8px;
+    color: #007bff; /* Bright blue */
+}
+
+/* Style the View Original link */
+.reshare-link {
+    margin-left: auto; /* Push the link to the right */
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* 3. Complete the hover state for the link */
+.reshare-link:hover {
+    background-color: #cce5ff; /* Light blue background on hover */
+    color: #0056b3; /* Darker blue text on hover */
+    text-decoration: underline; /* Emphasize link on hover */
+}

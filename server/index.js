@@ -24,10 +24,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman)
     if (!origin) return callback(null, true);
-    
-    // Check if the origin is in the allowed list
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -41,7 +38,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions)); 
-app.use(express.json({ limit: '10mb' })); // Added file upload limit
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files
@@ -78,13 +75,11 @@ mongoose.connect(uri)
         methods: ["GET", "POST"],
         credentials: true
       },
-      // Increased timeouts for file uploads
       pingTimeout: 60000,
       pingInterval: 25000,
       connectTimeout: 60000
     });
 
-    // Make io available to routes/controllers
     app.set("io", io);
 
     io.on("connection", (socket) => {
@@ -124,11 +119,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Homepage route
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "feeds.html"));
-});
-
 // API routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
@@ -140,15 +130,39 @@ app.use("/api/notifications", require("./routes/notifications"));
 
 console.log('✅ All routes loaded');
 
-// Error handling middleware
+// ----------------------------------------------------------------------
+// 🟢 FINAL FIX: CATCH-ALL FALLBACK ROUTE USING REGEX
+// This is the most reliable syntax to bypass the PathError.
+// It matches all GET requests that haven't been matched by an API or static file.
+// ----------------------------------------------------------------------
+app.get(/^(?!.*(\.js|\.css|\.ico|\.png|\.jpg|\.jpeg|\.gif)).*$/, (req, res) => {
+    // This Regex ensures we don't accidentally serve feeds.html for static asset requests
+    // that the express.static middleware couldn't find (which would be a 404).
+    res.sendFile(path.join(__dirname, "public", "feeds.html")); 
+});
+
+// Error handling middleware (Must be second-to-last)
 app.use((err, req, res, next) => {
   console.error('💥 Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// ----------------------------------------------------------------------
+// 🟢 THE ULTIMATE CATCH-ALL (REPLACES 404 AND FALLBACK)
+// This MUST be the very last middleware block in your entire file.
+// ----------------------------------------------------------------------
+app.use((req, res, next) => {
+    // If it's a GET request and hasn't been matched by any API route or
+    // static file (from the 'public' folder), it's treated as a client-side route
+    // (e.g., /feeds/123). We serve the main HTML file so the frontend JS takes over.
+    if (req.method === 'GET') {
+        // Use a simple return here to end the response chain
+        return res.sendFile(path.join(__dirname, "public", "feeds.html"));
+    }
+    
+    // For all other unmatched requests (e.g., a POST to a non-existent route), 
+    // respond with a 404 JSON.
+    res.status(404).json({ error: 'Route not found' });
 });
 
 module.exports = app;

@@ -1,12 +1,12 @@
-import { 
-    fetchFeeds, 
-    likeFeed, 
-    commentOnFeed, 
-    deleteComment, 
-    deleteFeed, 
-    updateFeed, 
-    fetchFeedById, 
-    createFeed
+import {
+  fetchFeeds,
+  likeFeed,
+  commentOnFeed,
+  deleteComment,
+  deleteFeed,
+  updateFeed,
+  fetchFeedById,
+  createFeed,
 } from "./app.js";
 
 // Import rendering functions from ui.js itself for internal use,
@@ -16,13 +16,12 @@ import {
 // ==========================================================
 
 function setupEventDelegation() {
-  console.log('🔧 Setting up event delegation...');
-  
+  console.log("🔧 Setting up event delegation...");
+
   // Single event listener for all interactive elements
-  document.addEventListener('click', async (e) => {
-    
+  document.addEventListener("click", async (e) => {
     // --- Like Button ---
-    const likeBtn = e.target.closest('.like-btn');
+    const likeBtn = e.target.closest(".like-btn");
     if (likeBtn) {
       e.preventDefault();
       const id = likeBtn.dataset.id;
@@ -31,7 +30,7 @@ function setupEventDelegation() {
     }
 
     // --- Comment Button (Toggle) ---
-    const commentBtn = e.target.closest('.comment-btn');
+    const commentBtn = e.target.closest(".comment-btn");
     if (commentBtn) {
       e.preventDefault();
       const id = commentBtn.dataset.id;
@@ -40,7 +39,7 @@ function setupEventDelegation() {
     }
 
     // --- Submit Comment Button ---
-    const submitCommentBtn = e.target.closest('.submit-comment');
+    const submitCommentBtn = e.target.closest(".submit-comment");
     if (submitCommentBtn) {
       e.preventDefault();
       const feedId = submitCommentBtn.dataset.id;
@@ -49,7 +48,7 @@ function setupEventDelegation() {
     }
 
     // --- Menu Button (Toggle) ---
-    const menuBtn = e.target.closest('.menu-btn');
+    const menuBtn = e.target.closest(".menu-btn");
     if (menuBtn) {
       e.preventDefault();
       e.stopPropagation();
@@ -59,7 +58,7 @@ function setupEventDelegation() {
     }
 
     // --- Handle edit post buttons ---
-    const editBtn = e.target.closest('.edit-post');
+    const editBtn = e.target.closest(".edit-post");
     if (editBtn) {
       e.preventDefault();
       e.stopPropagation();
@@ -69,7 +68,7 @@ function setupEventDelegation() {
     }
 
     // --- Handle delete post buttons ---
-    const deleteBtn = e.target.closest('.delete-post');
+    const deleteBtn = e.target.closest(".delete-post");
     if (deleteBtn) {
       e.preventDefault();
       e.stopPropagation();
@@ -79,7 +78,7 @@ function setupEventDelegation() {
     }
 
     // --- Handle pin post buttons ---
-    const pinBtn = e.target.closest('.pin-post');
+    const pinBtn = e.target.closest(".pin-post");
     if (pinBtn) {
       e.preventDefault();
       e.stopPropagation();
@@ -89,74 +88,111 @@ function setupEventDelegation() {
     }
 
     // --- Handle cancel edit buttons ---
-    const cancelBtn = e.target.closest('.cancel-edit-btn');
+    const cancelBtn = e.target.closest(".cancel-edit-btn");
     if (cancelBtn) {
       e.preventDefault();
       const feedId = cancelBtn.dataset.id;
       cancelEdit(feedId);
       return;
     }
-    
+
     // --- Handle remove image button in edit form ---
-    const removeBtn = e.target.closest('.remove-image-btn');
+    const removeBtn = e.target.closest(".remove-image-btn");
     if (removeBtn) {
       e.preventDefault();
       handleRemoveImageClick(removeBtn);
       return;
     }
-    
+
     // --- Handle delete comment buttons ---
-    const deleteCommentBtn = e.target.closest('.delete-comment-btn');
+    const deleteCommentBtn = e.target.closest(".delete-comment-btn");
     if (deleteCommentBtn) {
-        e.preventDefault();
-        const feedId = deleteCommentBtn.dataset.feedId;
-        const commentId = deleteCommentBtn.dataset.commentId;
-        await handleDeleteComment(feedId, commentId);
-        return;
+      e.preventDefault();
+      const feedId = deleteCommentBtn.dataset.feedId;
+      const commentId = deleteCommentBtn.dataset.commentId;
+      await handleDeleteComment(feedId, commentId);
+      return;
     }
 
     // --- Share Button (Open Modal) ---
-    const shareBtn = e.target.closest('.share-btn');
+    const shareBtn = e.target.closest(".share-btn");
     if (shareBtn) {
-        // console.log('--- SHARE CLICK HANDLER FIRED ---'); // You can remove this now
-        e.preventDefault();
-        const feedId = shareBtn.dataset.id;
-        openShareModal(feedId); // Opens the modal (this part is already working!)
-        return;
+      // console.log('--- SHARE CLICK HANDLER FIRED ---'); // You can remove this now
+      e.preventDefault();
+      const feedId = shareBtn.dataset.id;
+      openShareModal(feedId); // Opens the modal (this part is already working!)
+      return;
     }
 
     // --- Share Option Button (Inside Modal) ---
-    const shareOptionBtn = e.target.closest('.share-option-btn');
+    const shareOptionBtn = e.target.closest(".share-option-btn");
     if (shareOptionBtn) {
-        e.preventDefault();
-        const feedId = shareOptionBtn.dataset.id;
-        const target = shareOptionBtn.dataset.target;
-        
-        // 🟢 FIX APPLIED: Removed the incorrect third argument (shareOptionBtn.closest(...))
-        await handleShareOptionClick(feedId, target); 
-        
-        // console log here is vital to know if the click event reached this point
-        console.log('✅ Share option executed:', target)
+      e.preventDefault();
+      const feedId = shareOptionBtn.dataset.id;
+      const target = shareOptionBtn.dataset.target;
 
-        closeShareModal(feedId); // Close modal after action
-        return;
+      // 🟢 FIX APPLIED: Removed the incorrect third argument (shareOptionBtn.closest(...))
+      await handleShareOptionClick(feedId, target);
+
+      // console log here is vital to know if the click event reached this point
+      console.log("✅ Share option executed:", target);
+
+      closeShareModal(feedId); // Close modal after action
+      return;
     }
 
     // --- Close Modal Button ---
-    const closeModalBtn = e.target.closest('.close-modal-btn');
+    const closeModalBtn = e.target.closest(".close-modal-btn");
     if (closeModalBtn) {
-        e.preventDefault();
-        const feedId = closeModalBtn.dataset.id;
-        console.log('Closing modal for ID:', feedId)
-        closeShareModal(feedId);
-        return;
+      e.preventDefault();
+      const feedId = closeModalBtn.dataset.id;
+      console.log("Closing modal for ID:", feedId);
+      closeShareModal(feedId);
+      return;
     }
 
+    // --- Handle View Original Links in Reshare Posts ---
+    const reshareLink = e.target.closest(".reshare-link");
+    if (reshareLink) {
+      e.preventDefault();
+      const originalFeedId = reshareLink.dataset.originalId;
+      handleViewOriginal(originalFeedId);
+      return;
+    }
+
+    // --- Handle View Original Link (Redirection) ---
+    const viewOriginalLink = e.target.closest(".reshare-link");
+    if (viewOriginalLink) {
+      console.log("--- VIEW ORIGINAL CLICK HANDLER FIRED ---");
+      e.preventDefault();
+
+      // We use the data-original-id attribute set in generateFeedHTML
+      const originalFeedId = viewOriginalLink.dataset.originalId;
+
+      if (originalFeedId) {
+        console.log(`Redirecting to original post with ID: ${originalFeedId}`);
+
+        // 🟢 REDIRECTION LOGIC 🟢
+        // Replace this line with your actual routing method (e.g., a history.pushState or router call).
+        // For a traditional web app:
+        window.location.href = `/feeds/${originalFeedId}`;
+
+        // If using a Single Page App (SPA) framework (like History API):
+        // history.pushState(null, '', `/feeds/${originalFeedId}`);
+        // loadPageContent(`/feeds/${originalFeedId}`); // Assuming you have a function to load content
+
+        // Use the simplest redirect for now:
+        // window.location.href = `/feeds/${originalFeedId}`;
+      } else {
+        console.error("❌ Could not find original-id for redirection.");
+      }
+      return;
+    }
   });
 
   // Listener for Edit Form submission (using delegation on the whole document)
-  document.addEventListener('submit', async (e) => {
-    const editForm = e.target.closest('.editPostForm');
+  document.addEventListener("submit", async (e) => {
+    const editForm = e.target.closest(".editPostForm");
     if (editForm) {
       e.preventDefault();
       const feedId = editForm.dataset.id;
@@ -164,22 +200,23 @@ function setupEventDelegation() {
     }
   });
 
-
   // Close menus when clicking outside the menu area
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.feed-menu')) {
-      document.querySelectorAll('.menu-dropdown.show').forEach(menu => {
-        menu.classList.remove('show');
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".feed-menu")) {
+      document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
+        menu.classList.remove("show");
       });
     }
   });
 
   // Handle Enter key in comment inputs (Keyboard Support)
-  document.addEventListener('keypress', (e) => {
-    if (e.target.classList.contains('comment-input') && e.key === 'Enter') {
+  document.addEventListener("keypress", (e) => {
+    if (e.target.classList.contains("comment-input") && e.key === "Enter") {
       e.preventDefault();
-      const feedId = e.target.id.replace('commentInput-', '');
-      const submitBtn = document.querySelector(`.submit-comment[data-id="${feedId}"]`);
+      const feedId = e.target.id.replace("commentInput-", "");
+      const submitBtn = document.querySelector(
+        `.submit-comment[data-id="${feedId}"]`
+      );
       if (submitBtn) {
         handleCommentSubmit(feedId, submitBtn);
       }
@@ -192,26 +229,26 @@ function setupEventDelegation() {
 // ==========================================================
 
 async function handleDeletePost(feedId, deleteBtn) {
-  console.log('🗑️ Delete post clicked:', feedId);
-  
-  if (!confirm('Are you sure you want to delete this post?')) return;
+  console.log("🗑️ Delete post clicked:", feedId);
+
+  if (!confirm("Are you sure you want to delete this post?")) return;
 
   const originalText = deleteBtn.textContent;
-  deleteBtn.textContent = 'Deleting...';
+  deleteBtn.textContent = "Deleting...";
   deleteBtn.disabled = true;
 
   try {
     // deleteFeed sends the API call which triggers the 'feedDeleted' socket event
-    const success = await deleteFeed(feedId); 
-    
+    const success = await deleteFeed(feedId);
+
     if (success) {
       // Immediate UI removal for fast feedback, even before the socket event
       const feedElement = document.getElementById(`feed-${feedId}`);
       if (feedElement) {
-        feedElement.style.opacity = '0';
-        feedElement.style.transform = 'scale(0.8)';
-        feedElement.style.transition = 'all 0.3s ease';
-        
+        feedElement.style.opacity = "0";
+        feedElement.style.transform = "scale(0.8)";
+        feedElement.style.transition = "all 0.3s ease";
+
         setTimeout(() => {
           if (feedElement.parentNode) {
             feedElement.remove();
@@ -219,64 +256,64 @@ async function handleDeletePost(feedId, deleteBtn) {
         }, 300);
       }
     } else {
-      throw new Error('Delete failed or unauthorized.');
+      throw new Error("Delete failed or unauthorized.");
     }
   } catch (error) {
-    console.error('Delete failed:', error);
-    alert('Failed to delete post: ' + error.message);
+    console.error("Delete failed:", error);
+    alert("Failed to delete post: " + error.message);
     deleteBtn.textContent = originalText;
     deleteBtn.disabled = false;
   }
 }
 
 async function handleDeleteComment(feedId, commentId) {
-    if (!confirm('Are you sure you want to delete this comment?')) return;
+  if (!confirm("Are you sure you want to delete this comment?")) return;
 
-    const commentElement = document.getElementById(`comment-${commentId}`);
-    if (!commentElement) return;
+  const commentElement = document.getElementById(`comment-${commentId}`);
+  if (!commentElement) return;
 
-    // Optional: visual feedback
-    commentElement.style.opacity = '0.5';
+  // Optional: visual feedback
+  commentElement.style.opacity = "0.5";
 
-    try {
-        const result = await deleteComment(feedId, commentId);
+  try {
+    const result = await deleteComment(feedId, commentId);
 
-        if (result) {
-            // Success, remove from DOM and update count
-            commentElement.remove();
-            export_updateCommentCount(feedId, -1);
-            console.log('✅ Comment deleted successfully.');
-        } else {
-            throw new Error('Delete comment failed.');
-        }
-    } catch (error) {
-        console.error('Comment deletion failed:', error);
-        alert('Failed to delete comment: ' + error.message);
-        commentElement.style.opacity = '1'; // Restore opacity on failure
+    if (result) {
+      // Success, remove from DOM and update count
+      commentElement.remove();
+      export_updateCommentCount(feedId, -1);
+      console.log("✅ Comment deleted successfully.");
+    } else {
+      throw new Error("Delete comment failed.");
     }
+  } catch (error) {
+    console.error("Comment deletion failed:", error);
+    alert("Failed to delete comment: " + error.message);
+    commentElement.style.opacity = "1"; // Restore opacity on failure
+  }
 }
 
 async function handlePinPost(feedId) {
-  console.log('📌 Pin post clicked:', feedId);
-  alert('Pin functionality will be implemented soon!');
-  
+  console.log("📌 Pin post clicked:", feedId);
+  alert("Pin functionality will be implemented soon!");
+
   // Close menu
-  document.querySelectorAll('.menu-dropdown.show').forEach(menu => {
-    menu.classList.remove('show');
+  document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
+    menu.classList.remove("show");
   });
 }
 
 async function handleLikeClick(feedId, likeBtn) {
   // Add temporary feedback class
-  likeBtn.classList.add('liking');
+  likeBtn.classList.add("liking");
   likeBtn.disabled = true;
 
   try {
     const result = await likeFeed(feedId);
     if (!result) return;
-    
+
     // Update like count immediately on UI
-    const stats = likeBtn.closest('.feed-item')?.querySelector('.feed-stats');
+    const stats = likeBtn.closest(".feed-item")?.querySelector(".feed-stats");
     if (stats) {
       const text = stats.textContent;
       // Using a regex to reliably find and replace the like count
@@ -284,9 +321,9 @@ async function handleLikeClick(feedId, likeBtn) {
       stats.textContent = newText;
     }
   } catch (err) {
-    console.error('Error liking post:', err);
+    console.error("Error liking post:", err);
   } finally {
-    likeBtn.classList.remove('liking');
+    likeBtn.classList.remove("liking");
     likeBtn.disabled = false;
   }
 }
@@ -295,31 +332,31 @@ function toggleCommentsSection(feedId) {
   const section = document.getElementById(`comments-${feedId}`);
   if (section) {
     // Toggle between 'none' and 'block'
-    section.style.display = section.style.display === 'block' ? 'none' : 'block';
+    section.style.display =
+      section.style.display === "block" ? "none" : "block";
   }
 }
 
 async function handleCommentSubmit(feedId, submitBtn) {
   const input = document.getElementById(`commentInput-${feedId}`);
   const text = input?.value.trim();
-  
+
   if (!text) return;
 
   const originalHTML = submitBtn.innerHTML;
-  submitBtn.innerHTML = 'Posting...';
+  submitBtn.innerHTML = "Posting...";
   submitBtn.disabled = true;
 
   try {
     // commentOnFeed calls the API, which emits the socket event on success.
     await commentOnFeed(feedId, text);
-    input.value = ''; // Clear input on success
-    
-    // NOTE: The actual comment rendering and count update is handled 
-    // by the 'newComment' socket listener in feeds.js.
+    input.value = ""; // Clear input on success
 
+    // NOTE: The actual comment rendering and count update is handled
+    // by the 'newComment' socket listener in feeds.js.
   } catch (error) {
-    console.error('Failed to post comment:', error);
-    alert('Failed to post comment. Please try again.');
+    console.error("Failed to post comment:", error);
+    alert("Failed to post comment. Please try again.");
   } finally {
     submitBtn.innerHTML = originalHTML;
     submitBtn.disabled = false;
@@ -331,12 +368,12 @@ function toggleMenu(feedId) {
   if (!menu) return;
 
   // Close all other menus for a clean UI
-  document.querySelectorAll('.menu-dropdown.show').forEach(otherMenu => {
-    if (otherMenu !== menu) otherMenu.classList.remove('show');
+  document.querySelectorAll(".menu-dropdown.show").forEach((otherMenu) => {
+    if (otherMenu !== menu) otherMenu.classList.remove("show");
   });
 
   // Toggle current menu
-  menu.classList.toggle('show');
+  menu.classList.toggle("show");
 }
 
 async function handleEditPost(feedId) {
@@ -346,33 +383,63 @@ async function handleEditPost(feedId) {
   try {
     const originalHTML = card.innerHTML;
     // Show loading state
-    card.innerHTML = '<div style="text-align:center; padding: 20px;">Loading editor...</div>';
-    
+    card.innerHTML =
+      '<div style="text-align:center; padding: 20px;">Loading editor...</div>';
+
     // Fetch the raw feed data
     const feedToEdit = await fetchFeedById(feedId);
     if (!feedToEdit) {
-      alert('Could not load post for editing.');
+      alert("Could not load post for editing.");
       card.innerHTML = originalHTML; // Restore on failure
       return;
     }
 
     // Store original HTML and set flag
     card.dataset.originalHtml = originalHTML;
-    card.dataset.editing = 'true';
+    card.dataset.editing = "true";
 
     // Replace card content with the edit form
     card.innerHTML = createEditForm(feedToEdit);
     setupEditFormListeners(feedId);
 
     // Close any open menus
-    document.querySelectorAll('.menu-dropdown.show').forEach(menu => {
-      menu.classList.remove('show');
+    document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
+      menu.classList.remove("show");
     });
-
   } catch (error) {
-    console.error('Error loading post for editing:', error);
-    alert('Failed to load post for editing. ' + error.message);
+    console.error("Error loading post for editing:", error);
+    alert("Failed to load post for editing. " + error.message);
     cancelEdit(feedId);
+  }
+}
+
+// 🟢 ADD THIS NEW FUNCTION:
+function handleViewOriginal(originalFeedId) {
+  console.log("🔍 View Original clicked for:", originalFeedId);
+
+  // Check if we're already on the feeds page
+  const isOnFeedsPage = window.location.pathname.includes("feeds.html");
+
+  if (isOnFeedsPage) {
+    // Try to scroll to the original post on the same page
+    const originalPost = document.getElementById(`feed-${originalFeedId}`);
+    if (originalPost) {
+      originalPost.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      // Highlight the original post
+      originalPost.style.backgroundColor = "#fff9e6";
+      originalPost.style.transition = "background-color 0.5s ease";
+
+      setTimeout(() => {
+        originalPost.style.backgroundColor = "";
+      }, 3000);
+    } else {
+      // Post not found on current page, redirect with parameter
+      window.location.href = `feeds.html?feedId=${originalFeedId}`;
+    }
+  } else {
+    // Not on feeds page, redirect to feeds page with the post ID
+    window.location.href = `feeds.html?feedId=${originalFeedId}`;
   }
 }
 
@@ -380,35 +447,37 @@ async function handleEditPost(feedId) {
  * NEW FUNCTION: Handles the submission of the Edit Post form.
  */
 async function handleEditFormSubmit(feedId, form) {
-  const saveBtn = form.querySelector('.save-edit-btn');
+  const saveBtn = form.querySelector(".save-edit-btn");
   const originalBtnText = saveBtn.textContent;
-  
+
   // Disable UI
-  saveBtn.textContent = 'Saving...';
+  saveBtn.textContent = "Saving...";
   saveBtn.disabled = true;
   form.disabled = true;
 
   try {
     const formData = new FormData(form);
-    
-    console.log('🔄 Calling updateFeed API...');
-    
+
+    console.log("🔄 Calling updateFeed API...");
+
     const updatedFeed = await updateFeed(feedId, formData);
-    
+
     if (updatedFeed) {
-      console.log('✅ Post updated successfully. Awaiting socket re-render...');
+      console.log("✅ Post updated successfully. Awaiting socket re-render...");
       // NOTE: We don't restore the original content (cancelEdit) here.
       // The 'feedUpdated' socket listener in feeds.js will receive the
-      // full, updated post from the server and re-render the card, 
+      // full, updated post from the server and re-render the card,
       // automatically overriding the edit form.
-      
     } else {
-      throw new Error('Update failed on server.');
+      throw new Error("Update failed on server.");
     }
   } catch (error) {
-    console.error('💥 Edit Form Submission Error:', error);
-    alert('Failed to update post: ' + error.message.split(': ')[1] || 'Please try again.');
-    
+    console.error("💥 Edit Form Submission Error:", error);
+    alert(
+      "Failed to update post: " + error.message.split(": ")[1] ||
+        "Please try again."
+    );
+
     // If update fails, re-enable button but keep the form open
     saveBtn.textContent = originalBtnText;
     saveBtn.disabled = false;
@@ -430,23 +499,23 @@ export function cancelEdit(feedId) {
 }
 
 function handleRemoveImageClick(removeBtn) {
-  const form = removeBtn.closest('.editPostForm');
+  const form = removeBtn.closest(".editPostForm");
   if (!form) return;
-  
+
   const feedId = form.dataset.id;
   const imageInput = document.getElementById(`edit-post-image-${feedId}`);
   const imagePreview = document.getElementById(`edit-image-preview-${feedId}`);
   const removeFlag = document.getElementById(`remove-image-flag-${feedId}`);
-  
+
   if (imagePreview) {
-    imagePreview.src = '';
-    imagePreview.style.display = 'none';
+    imagePreview.src = "";
+    imagePreview.style.display = "none";
   }
-  if (removeFlag) removeFlag.value = 'true'; // Set flag for backend
-  if (imageInput) imageInput.value = ''; // Clear file input
-  
+  if (removeFlag) removeFlag.value = "true"; // Set flag for backend
+  if (imageInput) imageInput.value = ""; // Clear file input
+
   // Hide the button after click
-  removeBtn.style.display = 'none'; 
+  removeBtn.style.display = "none";
 }
 
 function setupEditFormListeners(feedId) {
@@ -464,10 +533,10 @@ function setupEditFormListeners(feedId) {
         reader.onload = () => {
           if (imagePreview) {
             imagePreview.src = reader.result;
-            imagePreview.style.display = 'block';
+            imagePreview.style.display = "block";
           }
-          if (removeFlag) removeFlag.value = 'false'; // New image overrides removal
-          if (removeBtn) removeBtn.style.display = 'block'; // Show remove button if a file is present
+          if (removeFlag) removeFlag.value = "false"; // New image overrides removal
+          if (removeBtn) removeBtn.style.display = "block"; // Show remove button if a file is present
         };
         reader.readAsDataURL(file);
       }
@@ -482,109 +551,127 @@ function setupEditFormListeners(feedId) {
  * Dispatches action based on the target (profile, feeds, external, link copy).
  */
 async function handleShareOptionClick(feedId, target) {
-    
-    // Fetch the post text from the card element for external sharing
-    const feedElement = document.getElementById(`feed-${feedId}`);
-    const postText = feedElement ? feedElement.querySelector('.feed-text').textContent.substring(0, 100) + '...' : 'Check out this post!';
-    const shareUrl = `${window.location.origin}/feeds.html?feedId=${feedId}`; 
+  // Fetch the post text from the card element for external sharing
+  const feedElement = document.getElementById(`feed-${feedId}`);
+  const postText = feedElement
+    ? feedElement.querySelector(".feed-text").textContent.substring(0, 100) +
+      "..."
+    : "Check out this post!";
+  const shareUrl = `${window.location.origin}/feeds.html?feedId=${feedId}`;
 
-    switch (target) {
-        case 'profile':
-            // 1. 🚨 INTERACTIVE STEP: Get the target profile ID/Username
-            const targetProfile = prompt("Enter the Username or ID of the profile to share with:");
+  switch (target) {
+    case "profile":
+      // 1. 🚨 INTERACTIVE STEP: Get the target profile ID/Username
+      const targetProfile = prompt(
+        "Enter the Username or ID of the profile to share with:"
+      );
 
-            if (targetProfile) {
-                console.log(`User selected profile: ${targetProfile}`);
-                
-                // 2. 🚨 API CALL: Use createFeed to submit the share request
-                try {
-                    await createFeed({
-                        type: 'share', // Signal to the backend this is a share/repost
-                        originalFeedId: feedId,
-                        targetUser: targetProfile, // Send the chosen target
-                        text: `Shared a post with you!` // Optional text
-                    });
-                    console.log(`✅ API Call: Share post ${feedId} to profile ${targetProfile} successful.`);
-                    alert(`Post successfully sent to ${targetProfile}!`);
-                } catch (error) {
-                    console.error("Error sharing to profile:", error);
-                    alert("Error: Could not share post to profile.");
-                }
-            } else {
-                // User clicked cancel on the prompt
-                console.log("Share to profile cancelled.");
-            }
-            break;
+      if (targetProfile) {
+        console.log(`User selected profile: ${targetProfile}`);
 
-        case 'feeds':
-            console.log(`API Call: Preparing to Re-post feed ${feedId} to main feeds page.`);
+        // 2. 🚨 API CALL: Use createFeed to submit the share request
+        try {
+          await createFeed({
+            type: "share", // Signal to the backend this is a share/repost
+            originalFeedId: feedId,
+            targetUser: targetProfile, // Send the chosen target
+            text: `Shared a post with you!`, // Optional text
+          });
+          console.log(
+            `✅ API Call: Share post ${feedId} to profile ${targetProfile} successful.`
+          );
+          alert(`Post successfully sent to ${targetProfile}!`);
+        } catch (error) {
+          console.error("Error sharing to profile:", error);
+          alert("Error: Could not share post to profile.");
+        }
+      } else {
+        // User clicked cancel on the prompt
+        console.log("Share to profile cancelled.");
+      }
+      break;
 
-            try {
-                // 1. Prepare the data fields (Required by the backend validation)
-                const reshareData = {
-                    type: 'reshare',
-                    originalFeedId: feedId,
-                    // The backend requires a 'text' field, even if it's just a default message.
-                    text: `Shared post from feed ${feedId}. Check it out!`, 
-                };
+    case "feeds":
+      console.log(
+        `API Call: Preparing to Re-post feed ${feedId} to main feeds page.`
+      );
 
-                // 2. 🟢 FIX: Convert the data to a FormData object.
-                // This is mandatory because the backend route uses Multer (upload.single('image')).
-                const formData = new FormData();
-                formData.append('type', reshareData.type);
-                formData.append('originalFeedId', reshareData.originalFeedId);
-                formData.append('text', reshareData.text);
-                
-                // If you had a mechanism to allow the user to add custom text, 
-                // you would append that here instead of the default.
+      try {
+        // 1. Prepare the data fields (Required by the backend validation)
+        const reshareData = {
+          type: "reshare",
+          originalFeedId: feedId,
+          // 🟢 FIX: Use the original post's text instead of default message
+          text: `Shared post from feed ${feedId}. Check it out!`,
+        };
 
-                // 3. Call your API function with the FormData object.
-                // IMPORTANT: Ensure your `createFeed` utility does *not* set the 'Content-Type' 
-                // header (browser will set it automatically to 'multipart/form-data' boundary).
-                await createFeed(formData); 
-                
-                console.log(`✅ API Call: Re-post ${feedId} to feeds page successful.`);
-                alert("Post successfully re-posted to your feeds page!");
-            } catch (error) {
-                console.error("Error re-posting to feeds:", error);
-                alert("Error: Could not re-post to feeds page.");
-            }
-            break;
+        // 2. 🟢 NEW: Fetch the original post to get its actual text
+        const originalFeed = await fetchFeedById(feedId);
+        if (originalFeed && originalFeed.text) {
+          // 🟢 FIX: Replace default text with original text
+          reshareData.text = originalFeed.text;
+        }
 
-        case 'external':
-            // 🌐 Native Web Share API
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Check out this post!',
-                        text: postText,
-                        url: shareUrl,
-                    });
-                    console.log('✅ External share successful (Web Share API).');
-                } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        console.error('Error sharing externally:', error);
-                    }
-                }
-            } else {
-                alert("Web Share API not supported on this device. Use 'Copy Link'.");
-            }
-            break;
+        console.log("📝 Reshare content:", {
+          originalText: originalFeed?.text,
+          usingText: reshareData.text,
+          hasImage: !!originalFeed?.image,
+        });
 
-        case 'link': // Called by the 'Copy Link' button
-            try {
-                await navigator.clipboard.writeText(shareUrl);
-                alert('Link copied to clipboard!');
-                console.log('✅ Link copied:', shareUrl);
-            } catch (err) {
-                alert('Could not copy link to clipboard.');
-                console.error('Clipboard write failed:', err);
-            }
-            break;
-            
-        default:
-            console.warn(`Unknown share target: ${target}`);
-    }
+        // 3. 🟢 FIX: Convert the data to a FormData object (your working approach)
+        const formData = new FormData();
+        formData.append("type", reshareData.type);
+        formData.append("originalFeedId", reshareData.originalFeedId);
+        formData.append("text", reshareData.text);
+
+        // 🟢 FIX: Handle image the same way your working code does
+        // If you have image handling that works, add it here exactly as you had it
+
+        // 4. Call your API function with the FormData object
+        await createFeed(formData);
+
+        console.log(`✅ API Call: Re-post ${feedId} to feeds page successful.`);
+        alert("Post successfully re-posted to your feeds page!");
+      } catch (error) {
+        console.error("Error re-posting to feeds:", error);
+        alert("Error: Could not re-post to feeds page.");
+      }
+      break;
+
+    case "external":
+      // 🌐 Native Web Share API
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "Check out this post!",
+            text: postText,
+            url: shareUrl,
+          });
+          console.log("✅ External share successful (Web Share API).");
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            console.error("Error sharing externally:", error);
+          }
+        }
+      } else {
+        alert("Web Share API not supported on this device. Use 'Copy Link'.");
+      }
+      break;
+
+    case "link": // Called by the 'Copy Link' button
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("Link copied to clipboard!");
+        console.log("✅ Link copied:", shareUrl);
+      } catch (err) {
+        alert("Could not copy link to clipboard.");
+        console.error("Clipboard write failed:", err);
+      }
+      break;
+
+    default:
+      console.warn(`Unknown share target: ${target}`);
+  }
 }
 
 // ==========================================================
@@ -596,48 +683,48 @@ async function handleShareOptionClick(feedId, target) {
  * Also handles efficient update if the feed already exists.
  */
 export function renderSingleFeed(feed) {
-  const container = document.getElementById('feedContainer');
+  const container = document.getElementById("feedContainer");
   if (!container) return;
 
   const existingElement = document.getElementById(`feed-${feed._id}`);
-  
+
   if (existingElement) {
     // If it exists and is not being edited, update its content (used for socket updates)
-    if (existingElement.dataset.editing !== 'true') {
-        existingElement.innerHTML = generateFeedHTML(feed);
+    if (existingElement.dataset.editing !== "true") {
+      existingElement.innerHTML = generateFeedHTML(feed);
     }
     return; // Don't insert a duplicate
   }
 
-  const card = document.createElement('div');
-  card.className = 'feed-item';
+  const card = document.createElement("div");
+  card.className = "feed-item";
   card.id = `feed-${feed._id}`;
   card.innerHTML = generateFeedHTML(feed);
 
-  container.insertAdjacentElement('afterbegin', card);
+  container.insertAdjacentElement("afterbegin", card);
 }
 
 /**
  * Replaces the entire feed container content with the provided feeds.
  */
 export function renderFeeds(feeds) {
-  const container = document.getElementById('feedContainer');
-  
+  const container = document.getElementById("feedContainer");
+
   if (!container) {
-    console.error('❌ CRITICAL: feedContainer element not found!');
+    console.error("❌ CRITICAL: feedContainer element not found!");
     return;
   }
 
-  container.innerHTML = '';
+  container.innerHTML = "";
 
   if (!feeds || feeds.length === 0) {
-    container.innerHTML = '<p>No posts yet</p>';
+    container.innerHTML = "<p>No posts yet</p>";
     return;
   }
-  
+
   feeds.forEach((feed) => {
-    const card = document.createElement('div');
-    card.className = 'feed-item';
+    const card = document.createElement("div");
+    card.className = "feed-item";
     card.id = `feed-${feed._id}`;
     card.innerHTML = generateFeedHTML(feed);
     container.appendChild(card);
@@ -646,46 +733,101 @@ export function renderFeeds(feeds) {
 
 // 🎯 EXTRACTED: Generate feed HTML (reduces duplication)
 function generateFeedHTML(feed) {
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  // 🟢 NEW: Check for reshare status
+  const isReshare = feed.type === "reshare";
+  const originalFeedId = feed.originalFeed; // Use this for the "View Original" link
+
+  // 🟢 FIXED: Reshare Text Logic
+  let shouldShowText = false;
+
+  if (feed.text) {
+    if (isReshare) {
+      // For reshares, only hide the exact default message
+      const defaultReshareText = `Shared post from feed ${originalFeedId}. Check it out!`;
+      const isDefaultMessage = feed.text.trim() === defaultReshareText.trim();
+      shouldShowText = !isDefaultMessage;
+    } else {
+      // For original posts, always show text
+      shouldShowText = true;
+    }
+  }
+
+  // --- Determine post ownership and permissions ---
   const isOwner = currentUser.id === feed.user?._id;
-  const canDelete = currentUser.role === 'admin' || isOwner;
+  const canDelete = currentUser.role === "admin" || isOwner;
   const canEdit = isOwner;
-  const canPin = currentUser.role === 'admin';
+  const canPin = currentUser.role === "admin";
   const showMenu = canDelete || canEdit || canPin;
   const isLiked = feed.likes && feed.likes.includes(currentUser.id);
 
-  const imageHTML = feed.image 
-    ? `<img src="${feed.image}" alt="Feed Image" class="feed-image" onerror="this.style.display='none';" />` 
-    : '';
+  // --- HTML Components ---
+  const imageHTML = feed.image
+    ? `<img src="${feed.image}" alt="Feed Image" class="feed-image" onerror="this.style.display='none';" />`
+    : "";
 
-  const menuHTML = showMenu ? generateMenuHTML(feed, canEdit, canPin, canDelete) : '';
-  
+  const menuHTML = showMenu
+    ? generateMenuHTML(feed, canEdit, canPin, canDelete)
+    : "";
+
   const likeCount = feed.likes?.length || feed.likeCount || 0;
   const commentCount = feed.comments?.length || feed.commentCount || 0;
+  // Ensure generateCommentsHTML is defined and available
   const commentsHTML = generateCommentsHTML(feed);
 
+  // 🟢 NEW: Reshare Indicator HTML
+  let reshareIndicatorHTML = "";
+  if (isReshare) {
+    // NOTE: We assume the feed.user.name is the person who performed the reshare.
+    reshareIndicatorHTML = `
+          <div class="feed-reshare-indicator">
+              <i class="fas fa-retweet"></i> ${
+                feed.user?.name || "A User"
+              } shared a post
+              ${
+                originalFeedId
+                  ? // 🚨 NOTE: Changed data-id to data-original-id for clarity in delegation
+                    `<span class="reshare-link" data-original-id="${originalFeedId}">View Original</span>`
+                  : ""
+              }
+          </div>
+      `;
+  }
+  // --- End Reshare Indicator ---
+
   return `
-    <div class="feed-card">
+    <div class="feed-card ${
+      isReshare ? "reshared-feed" : "original-feed"
+    }" data-id="${feed._id}">
+        
+      ${reshareIndicatorHTML} 
+      
       <div class="feed-header">
         <div class="user-info">
-          <img src="${feed.user?.profilePic || './images/default-avatar.png'}" 
+          <img src="${feed.user?.profilePic || "./images/default-avatar.png"}" 
                 alt="User Avatar" class="avatar" />
           <div>
-            <h4 class="username">${feed.user?.name || 'Unknown User'}</h4>
-            <span class="churchAttend">${feed.user?.church || ''}</span>
+            <h4 class="username">${feed.user?.name || "Unknown User"}</h4>
+            <span class="churchAttend">${feed.user?.church || ""}</span>
             <span class="timestamp">${timeAgo(feed.createdAt)}</span>
           </div>
         </div>
         ${menuHTML}
       </div>
 
-      <p class="feed-text">${feed.text || ''}</p>
+      ${shouldShowText ? `<p class="feed-text">${feed.text || ""}</p>` : ""} 
+      
       ${imageHTML}
 
       <div class="feed-actions">
-        <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${feed._id}">👍 Like</button>
+        <button class="like-btn ${isLiked ? "liked" : ""}" data-id="${
+    feed._id
+  }">👍 Like</button>
         <button class="comment-btn" data-id="${feed._id}">💬 Comment</button>
-        <button class="share-btn" data-id="${feed._id}" data-text="${feed.text.substring(0, 100)}...">
+        <button class="share-btn" data-id="${feed._id}" data-text="${(
+    feed.text || ""
+  ).substring(0, 100)}...">
           <img src="./images/share-green.png" alt="Share" class="share-icon" style="width:30px; height:auto; border-radius:1px;"> Share
         </button>
       </div>
@@ -694,7 +836,9 @@ function generateFeedHTML(feed) {
         👍 ${likeCount} Likes · 💬 ${commentCount} Comments
       </div>
 
-      <div class="comments-section" id="comments-${feed._id}" style="display:none;">
+      <div class="comments-section" id="comments-${
+        feed._id
+      }" style="display:none;">
         <div class="comments-list">
           ${commentsHTML}
         </div>
@@ -714,9 +858,23 @@ function generateMenuHTML(feed, canEdit, canPin, canDelete) {
     <div class="feed-menu">
       <button class="menu-btn" data-id="${feed._id}">⋯</button>
       <div class="menu-dropdown" id="menu-${feed._id}">
-        ${canEdit ? `<button class="menu-item edit-post" data-id="${feed._id}">✏️ Edit Post</button>` : ''}
-        ${canPin ? `<button class="menu-item pin-post" data-id="${feed._id}">📌 ${feed.isPinned ? 'Unpin Post' : 'Pin Post'}</button>` : ''}
-        ${canDelete ? `<button class="menu-item delete-post" data-id="${feed._id}">🗑️ Delete Post</button>` : ''}
+        ${
+          canEdit
+            ? `<button class="menu-item edit-post" data-id="${feed._id}">✏️ Edit Post</button>`
+            : ""
+        }
+        ${
+          canPin
+            ? `<button class="menu-item pin-post" data-id="${feed._id}">📌 ${
+                feed.isPinned ? "Unpin Post" : "Pin Post"
+              }</button>`
+            : ""
+        }
+        ${
+          canDelete
+            ? `<button class="menu-item delete-post" data-id="${feed._id}">🗑️ Delete Post</button>`
+            : ""
+        }
       </div>
     </div>
   `;
@@ -724,26 +882,30 @@ function generateMenuHTML(feed, canEdit, canPin, canDelete) {
 
 // 🎯 EXTRACTED: Generate comments HTML (Reduces duplication)
 function generateCommentsHTML(feed) {
-  if (!feed.comments || feed.comments.length === 0) return '';
+  if (!feed.comments || feed.comments.length === 0) return "";
   // NOTE: feed._id is passed to renderComment
-  return feed.comments.map(comment => export_renderComment(feed._id, comment)).join('');
+  return feed.comments
+    .map((comment) => export_renderComment(feed._id, comment))
+    .join("");
 }
 
 export function renderComment(feedId, comment) {
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const isOwner = currentUser.id === comment.user?._id;
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = currentUser.role === "admin";
   const canDelete = isAdmin || isOwner;
-  
-  const deleteBtn = canDelete 
+
+  const deleteBtn = canDelete
     ? `<button class="delete-comment-btn" data-feed-id="${feedId}" data-comment-id="${comment._id}" title="Delete Comment">❌</button>`
-    : '';
+    : "";
 
   return `
     <div class="comment" id="comment-${comment._id}">
       <div class="comment-header">
-        <img src="${comment.user?.profilePic || './images/default-avatar.png'}" alt="Avatar" class="comment-avatar"/>
-        <b class="comment-username">${comment.user?.name || 'Unknown User'}:</b>
+        <img src="${
+          comment.user?.profilePic || "./images/default-avatar.png"
+        }" alt="Avatar" class="comment-avatar"/>
+        <b class="comment-username">${comment.user?.name || "Unknown User"}:</b>
         ${deleteBtn}
       </div>
       <div class="comment-text">${comment.text}</div>
@@ -773,15 +935,15 @@ export function createEditForm(feed) {
   const imagePreview = hasImage
     ? `<img src="${feed.image}" alt="Current Feed Image" class="feed-image" id="edit-image-preview-${feedId}" style="display:block;" />`
     : `<img src="" alt="Image Preview" class="feed-image" id="edit-image-preview-${feedId}" style="display:none;" />`;
-  
+
   const removeImageButton = hasImage
     ? `<button type="button" class="remove-image-btn menu-item">Remove Image</button>`
-    : '';
+    : "";
 
   return `
     <div class="feed-edit-form" id="edit-form-container-${feedId}" data-has-original-image="${hasImage}">
       <form class="editPostForm" data-id="${feedId}">
-        <textarea name="text" rows="4" required>${feed.text || ''}</textarea>
+        <textarea name="text" rows="4" required>${feed.text || ""}</textarea>
         <div class="image-upload-area">
           ${imagePreview}
           <div class="edit-image-controls">
@@ -805,7 +967,7 @@ export function createEditForm(feed) {
  * Generates the HTML for the share modal structure.
  */
 function createShareModal(feedId) {
-    return `
+  return `
         <div id="shareModal-${feedId}" class="share-modal-backdrop">
             <div class="share-modal-content">
                 <h3>Share Post</h3>
@@ -832,21 +994,21 @@ function createShareModal(feedId) {
  * Handles showing the share modal.
  */
 function openShareModal(feedId) {
-    // Check if modal already exists to avoid duplication
-    if (!document.getElementById(`shareModal-${feedId}`)) {
-        document.body.insertAdjacentHTML('beforeend', createShareModal(feedId));
-    }
-    document.getElementById(`shareModal-${feedId}`).style.display = 'flex';
+  // Check if modal already exists to avoid duplication
+  if (!document.getElementById(`shareModal-${feedId}`)) {
+    document.body.insertAdjacentHTML("beforeend", createShareModal(feedId));
+  }
+  document.getElementById(`shareModal-${feedId}`).style.display = "flex";
 }
 
 /**
  * Handles closing the share modal.
  */
 function closeShareModal(feedId) {
-    const modal = document.getElementById(`shareModal-${feedId}`);
-    if (modal) {
-        modal.style.display = 'none';
-    }
+  const modal = document.getElementById(`shareModal-${feedId}`);
+  if (modal) {
+    modal.style.display = "none";
+  }
 }
 
 function timeAgo(dateString) {
@@ -862,6 +1024,6 @@ function timeAgo(dateString) {
 
 // Initialize event delegation when module loads
 export function initializeUI() {
-  console.log('🎯 Initializing UI event delegation...');
+  console.log("🎯 Initializing UI event delegation...");
   setupEventDelegation();
 }
