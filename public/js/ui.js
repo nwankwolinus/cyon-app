@@ -113,6 +113,44 @@ function setupEventDelegation() {
         await handleDeleteComment(feedId, commentId);
         return;
     }
+
+    // --- Share Button (Open Modal) ---
+    const shareBtn = e.target.closest('.share-btn');
+    if (shareBtn) {
+        // console.log('--- SHARE CLICK HANDLER FIRED ---'); // You can remove this now
+        e.preventDefault();
+        const feedId = shareBtn.dataset.id;
+        openShareModal(feedId); // Opens the modal (this part is already working!)
+        return;
+    }
+
+    // --- Share Option Button (Inside Modal) ---
+    const shareOptionBtn = e.target.closest('.share-option-btn');
+    if (shareOptionBtn) {
+        e.preventDefault();
+        const feedId = shareOptionBtn.dataset.id;
+        const target = shareOptionBtn.dataset.target;
+        
+        // 🟢 FIX APPLIED: Removed the incorrect third argument (shareOptionBtn.closest(...))
+        await handleShareOptionClick(feedId, target); 
+        
+        // console log here is vital to know if the click event reached this point
+        console.log('✅ Share option executed:', target)
+
+        closeShareModal(feedId); // Close modal after action
+        return;
+    }
+
+    // --- Close Modal Button ---
+    const closeModalBtn = e.target.closest('.close-modal-btn');
+    if (closeModalBtn) {
+        e.preventDefault();
+        const feedId = closeModalBtn.dataset.id;
+        console.log('Closing modal for ID:', feedId)
+        closeShareModal(feedId);
+        return;
+    }
+
   });
 
   // Listener for Edit Form submission (using delegation on the whole document)
@@ -436,6 +474,68 @@ function setupEditFormListeners(feedId) {
   }
 }
 
+// feeds.js (Add this function)
+
+/**
+ * 📢 Handle Share Option Click (Central Dispatcher)
+ * Dispatches action based on the target (profile, feeds, external, link copy).
+ */
+async function handleShareOptionClick(feedId, target) {
+    
+    // Fetch the post text from the card element for external sharing
+    const feedElement = document.getElementById(`feed-${feedId}`);
+    const postText = feedElement ? feedElement.querySelector('.feed-text').textContent.substring(0, 100) + '...' : 'Check out this post!';
+    const shareUrl = `${window.location.origin}/feeds.html?feedId=${feedId}`; 
+
+    switch (target) {
+        case 'profile':
+            // 💡 TO DO: Call an API function to send post ID to a user/profile
+            console.log(`API Call: Share post ${feedId} to another user profile.`);
+            alert("Feature: Sent to selected profile successfully!");
+            break;
+
+        case 'feeds':
+            // 💡 TO DO: Call an API function to re-post/cross-post this post
+            console.log(`API Call: Re-post ${feedId} to main feeds page.`);
+            alert("Feature: Re-posted to your feeds page successfully!");
+            break;
+
+        case 'external':
+            // 🌐 Native Web Share API
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Check out this post!',
+                        text: postText,
+                        url: shareUrl,
+                    });
+                    console.log('✅ External share successful (Web Share API).');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('Error sharing externally:', error);
+                    }
+                }
+            } else {
+                alert("Web Share API not supported on this device. Use 'Copy Link'.");
+            }
+            break;
+
+        case 'link': // Called by the 'Copy Link' button
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                alert('Link copied to clipboard!');
+                console.log('✅ Link copied:', shareUrl);
+            } catch (err) {
+                alert('Could not copy link to clipboard.');
+                console.error('Clipboard write failed:', err);
+            }
+            break;
+            
+        default:
+            console.warn(`Unknown share target: ${target}`);
+    }
+}
+
 // ==========================================================
 // 🎯 RENDER FUNCTIONS (EXPORTED)
 // ==========================================================
@@ -534,7 +634,9 @@ function generateFeedHTML(feed) {
       <div class="feed-actions">
         <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${feed._id}">👍 Like</button>
         <button class="comment-btn" data-id="${feed._id}">💬 Comment</button>
-        <button class="share-btn" disabled>↗ Share</button>
+        <button class="share-btn" data-id="${feed._id}" data-text="${feed.text.substring(0, 100)}...">
+          <img src="./images/share-green.png" alt="Share" class="share-icon" style="width:30px; height:auto; border-radius:1px;"> Share
+        </button>
       </div>
 
       <div class="feed-stats">
@@ -644,6 +746,56 @@ export function createEditForm(feed) {
       </form>
     </div>
   `;
+}
+
+// ui.js (New function)
+
+/**
+ * Generates the HTML for the share modal structure.
+ */
+function createShareModal(feedId) {
+    return `
+        <div id="shareModal-${feedId}" class="share-modal-backdrop">
+            <div class="share-modal-content">
+                <h3>Share Post</h3>
+                <p>Choose where you want to share this post:</p>
+                <button class="share-option-btn internal-share" data-id="${feedId}" data-target="profile">
+                    👥 Share to another Profile
+                </button>
+                <button class="share-option-btn internal-share" data-id="${feedId}" data-target="feeds">
+                    📢 Post to Feeds Page
+                </button>
+                <button class="share-option-btn external-share" data-id="${feedId}" data-target="external">
+                    🌐 Share to External App (e.g., WhatsApp, Email)
+                </button>
+                <button class="share-option-btn copy-link" data-id="${feedId}" data-target="link">
+                    🔗 Copy Link to Clipboard
+                </button>
+                <button class="close-modal-btn" data-id="${feedId}">Close</button>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Handles showing the share modal.
+ */
+function openShareModal(feedId) {
+    // Check if modal already exists to avoid duplication
+    if (!document.getElementById(`shareModal-${feedId}`)) {
+        document.body.insertAdjacentHTML('beforeend', createShareModal(feedId));
+    }
+    document.getElementById(`shareModal-${feedId}`).style.display = 'flex';
+}
+
+/**
+ * Handles closing the share modal.
+ */
+function closeShareModal(feedId) {
+    const modal = document.getElementById(`shareModal-${feedId}`);
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 function timeAgo(dateString) {
