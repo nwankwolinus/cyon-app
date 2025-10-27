@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 // CommentSchema sub-schema
 const commentSchema = new mongoose.Schema(
   {
@@ -29,6 +30,16 @@ const feedSchema = new mongoose.Schema(
       ref: "Feed", 
       required: false           // Only required if type is 'reshare'
     },
+
+    // 🟢 ADD PIN FIELDS HERE
+    isPinned: {
+      type: Boolean,
+      default: false
+    },
+    pinnedAt: {
+      type: Date,
+      default: null
+    }
   },
   { timestamps: true }
 );

@@ -252,15 +252,18 @@ export async function updateFeed(feedId, formData) {
   }
 }
 
-// Add to app.js
+// In app.js - Updated togglePinFeed function
 export async function togglePinFeed(feedId) {
     try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         if (!token) {
-            throw new Error('No authentication token found');
+            throw new Error('Please log in to pin posts');
         }
 
-        const response = await fetch(`/api/feeds/${feedId}/toggle-pin`, {
+        const url = `${API_FEEDS}/${feedId}/toggle-pin`;
+        console.log('🎯 Making pin request to:', url);
+
+        const response = await fetch(url, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -268,14 +271,46 @@ export async function togglePinFeed(feedId) {
             }
         });
 
+        console.log('📡 Pin response:', {
+            url: url,
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
+        });
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to toggle pin status');
+            const errorText = await response.text().catch(() => 'No error details');
+            console.error('🚨 Server error:', errorText);
+            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        console.log('✅ Pin toggle successful:', result);
+        return result;
+        
     } catch (error) {
-        console.error('Error toggling pin status:', error);
+        console.error('❌ Pin toggle failed:', error);
         throw error;
+    }
+}
+
+// 🟢 ADD THIS HELPER FUNCTION to implement the backend endpoint)
+async function fetchUsers() {
+    try {
+        const token = getToken();
+        const response = await fetch(`${getBackendBaseUrl()}/api/users`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            return await response.json();
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
     }
 }

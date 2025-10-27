@@ -1,10 +1,12 @@
-require("dotenv").config({ path: __dirname + "/.env" });
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const http = require("http");
 const { Server } = require("socket.io");
+
+// Load environment variables from server/.env
+require("dotenv").config({ path: __dirname + "/.env" }); 
 
 const app = express();
 
@@ -33,7 +35,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], 
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 };
 
@@ -54,10 +56,22 @@ if (!uri) {
   process.exit(1);
 }
 
-mongoose.connect(uri)
-  .then(() => {
-    console.log("✅ MongoDB connected");
+const mongooseOptions = {
+  serverSelectionTimeoutMS: 60000, 
+  socketTimeoutMS: 45000, 
+  connectTimeoutMS: 30000, 
+  maxPoolSize: 10, 
+  retryWrites: true,
+  retryReads: true,
+};
 
+console.log('🔄 Attempting MongoDB connection...');
+
+mongoose.connect(uri, mongooseOptions)
+  .then(() => {
+    console.log("✅ MongoDB connected successfully");
+    
+    // Create the HTTP server
     const server = http.createServer(app);
 
     // Socket.IO configuration
@@ -72,7 +86,7 @@ mongoose.connect(uri)
             callback(new Error('Not allowed by CORS'));
           }
         },
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
         credentials: true
       },
       pingTimeout: 60000,
@@ -98,14 +112,38 @@ mongoose.connect(uri)
       });
     });
 
+    // 🚀 START THE HTTP SERVER (CRUCIAL FIX)
     const PORT = process.env.PORT || 5001;
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 CORS enabled for file uploads with 60s timeout`);
     });
+
+    // MongoDB event listeners (for monitoring)
+    mongoose.connection.on('connected', () => {
+      console.log('✅ Mongoose connected to MongoDB');
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ Mongoose connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('🔴 Mongoose disconnected from MongoDB');
+    });
+
+    // Graceful shutdown handler
+    process.on('SIGINT', async () => {
+      console.log('🛑 Received SIGINT, closing connections...');
+      await mongoose.connection.close();
+      console.log('✅ MongoDB connection closed');
+      process.exit(0);
+    });
+
   })
-  .catch(err => {
-    console.error("❌ MongoDB connection error:", err);
+  .catch((error) => {
+    console.error("❌ MongoDB connection failed:", error);
+    console.log("💡 Troubleshooting tips: Check MONGO_URI, IP whitelist, and internet connection.");
     process.exit(1);
   });
 
@@ -130,16 +168,6 @@ app.use("/api/notifications", require("./routes/notifications"));
 
 console.log('✅ All routes loaded');
 
-// ----------------------------------------------------------------------
-// 🟢 FINAL FIX: CATCH-ALL FALLBACK ROUTE USING REGEX
-// This is the most reliable syntax to bypass the PathError.
-// It matches all GET requests that haven't been matched by an API or static file.
-// ----------------------------------------------------------------------
-app.get(/^(?!.*(\.js|\.css|\.ico|\.png|\.jpg|\.jpeg|\.gif)).*$/, (req, res) => {
-    // This Regex ensures we don't accidentally serve feeds.html for static asset requests
-    // that the express.static middleware couldn't find (which would be a 404).
-    res.sendFile(path.join(__dirname, "public", "feeds.html")); 
-});
 
 // Error handling middleware (Must be second-to-last)
 app.use((err, req, res, next) => {
@@ -148,20 +176,16 @@ app.use((err, req, res, next) => {
 });
 
 // ----------------------------------------------------------------------
-// 🟢 THE ULTIMATE CATCH-ALL (REPLACES 404 AND FALLBACK)
-// This MUST be the very last middleware block in your entire file.
+// 🟢 THE ULTIMATE CATCH-ALL (MUST BE THE LAST THING EXECUTED)
+// Handles SPA routing (e.g., /feeds/123) and general 404s.
 // ----------------------------------------------------------------------
 app.use((req, res, next) => {
-    // If it's a GET request and hasn't been matched by any API route or
-    // static file (from the 'public' folder), it's treated as a client-side route
-    // (e.g., /feeds/123). We serve the main HTML file so the frontend JS takes over.
+    // If it's an unmatched GET request, serve the main HTML file.
     if (req.method === 'GET') {
-        // Use a simple return here to end the response chain
         return res.sendFile(path.join(__dirname, "public", "feeds.html"));
     }
     
-    // For all other unmatched requests (e.g., a POST to a non-existent route), 
-    // respond with a 404 JSON.
+    // For all other unmatched requests (POST/PUT to wrong paths), return 404 JSON.
     res.status(404).json({ error: 'Route not found' });
 });
 

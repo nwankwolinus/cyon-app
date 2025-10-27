@@ -391,4 +391,53 @@ router.delete("/:id/comment/:commentId", auth, async (req, res) => {
   }
 });
 
+// 🟢 PIN ROUTE TO YOUR feeds.js BACKEND FILE
+router.patch("/:id/toggle-pin", auth, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Only administrators can pin posts" });
+    }
+
+    const feed = await Feed.findById(req.params.id);
+    if (!feed) {
+      return res.status(404).json({ error: "Feed not found" });
+    }
+
+    // Toggle pin status and track pin date
+    feed.isPinned = !feed.isPinned;
+    if (feed.isPinned) {
+      feed.pinnedAt = new Date();
+    } else {
+      feed.pinnedAt = null;
+    }
+    
+    await feed.save();
+
+    // Populate user data for frontend
+    await feed.populate("user", "name profilePic church role");
+    await feed.populate("comments.user", "name profilePic");
+
+    const formattedFeed = formatFeed(feed);
+
+    // Emit real-time events
+    const io = req.app.get("io");
+    if (feed.isPinned) {
+      io.emit("feedPinned", formattedFeed);
+    } else {
+      io.emit("feedUnpinned", formattedFeed);
+    }
+    io.emit("feedUpdated", formattedFeed);
+
+    res.json({ 
+      message: `Post ${feed.isPinned ? 'pinned' : 'unpinned'} successfully`,
+      feed: formattedFeed 
+    });
+
+  } catch (err) {
+    console.error("Error toggling pin status:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -7,7 +7,10 @@ import {
   updateFeed,
   fetchFeedById,
   createFeed,
+  togglePinFeed
 } from "./app.js";
+
+import { getToken, redirectToLogin } from "./utils.js";
 
 // Import rendering functions from ui.js itself for internal use,
 
@@ -292,12 +295,33 @@ async function handleDeleteComment(feedId, commentId) {
     commentElement.style.opacity = "1"; // Restore opacity on failure
   }
 }
-
+// handlePinPost
 async function handlePinPost(feedId) {
   console.log('📌 Pin/Unpin post clicked:', feedId);
   
   const pinBtn = document.querySelector(`.pin-post[data-id="${feedId}"]`);
   if (!pinBtn) return;
+
+  // ✅ Using your existing helper functions
+  const token = getToken();
+  if (!token) {
+    console.error('❌ No authentication token found for pin operation');
+    alert('Your session has expired. Please log in again.');
+    redirectToLogin();
+    return;
+  }
+
+  // 🟢 ADD THE ADMIN CHECK RIGHT HERE:
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  if (currentUser.role !== 'admin') {
+    alert('Only administrators can pin posts');
+    
+    // Close menu and return
+    document.querySelectorAll('.menu-dropdown.show').forEach(menu => {
+      menu.classList.remove('show');
+    });
+    return;
+  }
 
   const originalText = pinBtn.textContent;
   pinBtn.textContent = 'Updating...';
@@ -331,6 +355,86 @@ async function handlePinPost(feedId) {
       menu.classList.remove('show');
     });
   }
+}
+
+/**
+ * 🎯 Enhanced Share to Profile with User Search
+ */
+async function handleShareToProfile(feedId) {
+    try {
+        console.log('👥 Starting enhanced share to profile for feed:', feedId);
+        
+        // 1. Fetch available users (you'll need to implement this API)
+        const users = await fetchUsers(); // You'll need to create this function
+        if (!users || users.length === 0) {
+            alert('No users found to share with.');
+            return;
+        }
+
+        // 2. Create user selection UI
+        const userList = users.map(user => 
+            `${user.name} (${user.username})`
+        ).join('\n');
+
+        const selectedUser = prompt(
+            `Share with which user?\n\nAvailable users:\n${userList}\n\nEnter username:`,
+            ""
+        );
+
+        if (!selectedUser) {
+            console.log('Share cancelled');
+            return;
+        }
+
+        // 3. Extract username from selection (handle both "Name (username)" and direct username)
+        let targetUsername = selectedUser.trim();
+        const match = selectedUser.match(/\(([^)]+)\)/);
+        if (match) {
+            targetUsername = match[1]; // Extract username from parentheses
+        }
+
+        // 4. Proceed with sharing (same as above)
+        const originalFeed = await fetchFeedById(feedId);
+        if (!originalFeed) throw new Error('Original post not found');
+
+        const shareData = {
+            type: "share",
+            originalFeedId: feedId,
+            targetUser: targetUsername,
+            text: `Shared from ${originalFeed.user?.name || 'another user'}: ${originalFeed.text?.substring(0, 100) || 'Check out this post!'}`
+        };
+
+        const formData = new FormData();
+        formData.append('type', shareData.type);
+        formData.append('originalFeedId', shareData.originalFeedId);
+        formData.append('targetUser', shareData.targetUser);
+        formData.append('text', shareData.text);
+
+        // Handle image
+        if (originalFeed.image) {
+            try {
+                const imageResponse = await fetch(originalFeed.image);
+                if (imageResponse.ok) {
+                    const imageBlob = await imageResponse.blob();
+                    formData.append('image', imageBlob, 'shared-image.jpg');
+                }
+            } catch (imageError) {
+                console.warn('⚠️ Could not include image in share:', imageError);
+            }
+        }
+
+        const result = await createFeed(formData);
+
+        if (result && result.success) {
+            alert(`✅ Post successfully shared to ${targetUsername}'s profile!`);
+        } else {
+            throw new Error(result?.error || 'Share failed');
+        }
+
+    } catch (error) {
+        console.error('❌ Error sharing to profile:', error);
+        alert('Failed to share post: ' + error.message);
+    }
 }
 
 function toggleCommentsSection(feedId) {
@@ -566,34 +670,7 @@ async function handleShareOptionClick(feedId, target) {
 
   switch (target) {
     case "profile":
-      // 1. 🚨 INTERACTIVE STEP: Get the target profile ID/Username
-      const targetProfile = prompt(
-        "Enter the Username or ID of the profile to share with:"
-      );
-
-      if (targetProfile) {
-        console.log(`User selected profile: ${targetProfile}`);
-
-        // 2. 🚨 API CALL: Use createFeed to submit the share request
-        try {
-          await createFeed({
-            type: "share", // Signal to the backend this is a share/repost
-            originalFeedId: feedId,
-            targetUser: targetProfile, // Send the chosen target
-            text: `Shared a post with you!`, // Optional text
-          });
-          console.log(
-            `✅ API Call: Share post ${feedId} to profile ${targetProfile} successful.`
-          );
-          alert(`Post successfully sent to ${targetProfile}!`);
-        } catch (error) {
-          console.error("Error sharing to profile:", error);
-          alert("Error: Could not share post to profile.");
-        }
-      } else {
-        // User clicked cancel on the prompt
-        console.log("Share to profile cancelled.");
-      }
+      await handleShareToProfile(feedId)
       break;
 
     case "feeds":
@@ -744,6 +821,27 @@ export function renderFeeds(feeds) {
     card.innerHTML = generateFeedHTML(feed);
     container.appendChild(card);
   });
+}
+
+export function updatePinnedFeedInUI(updatedFeed) {
+    const feedElement = document.getElementById(`feed-${updatedFeed._id}`);
+    
+    if (feedElement) {
+        // Check if we're currently editing this feed
+        if (feedElement.dataset.editing !== 'true') {
+            // Re-render the feed card with updated pin status
+            feedElement.innerHTML = generateFeedHTML(updatedFeed);
+            console.log('✅ Pin status updated in UI for feed:', updatedFeed._id);
+        }
+    } else {
+        // If feed doesn't exist in current view, refresh the entire feed list
+        // This ensures pinned posts appear at the top
+        console.log('🔄 Feed not in current view, refreshing feeds for proper sorting...');
+        setTimeout(async () => {
+            const feeds = await fetchFeeds();
+            renderFeeds(feeds);
+        }, 100);
+    }
 }
 
 // 🎯 EXTRACTED: Generate feed HTML (reduces duplication)

@@ -15,7 +15,8 @@ import {
     renderComment, 
     updateCommentCount, 
     initializeUI, 
-    cancelEdit 
+    cancelEdit,
+    updatePinnedFeedInUI
 } from "./ui.js";
 
 import { getBackendBaseUrl, getToken, redirectToLogin } from './utils.js';
@@ -149,6 +150,27 @@ socket.on("commentDeleted", ({ feedId, commentId }) => {
     }
 });
 
+// Handle when a post is pinned
+socket.on("feedPinned", (pinnedFeed) => {
+    console.log("📌 Feed pinned via socket:", pinnedFeed._id);
+    updatePinnedFeedInUI(pinnedFeed);
+});
+
+// Handle when a post is unpinned  
+socket.on("feedUnpinned", (unpinnedFeed) => {
+    console.log("📌 Feed unpinned via socket:", unpinnedFeed._id);
+    updatePinnedFeedInUI(unpinnedFeed);
+});
+
+// Handle any feed update (including pin status changes)
+socket.on("feedUpdated", (updatedFeed) => {
+    console.log("⚡ Feed updated via socket:", updatedFeed._id, "Pinned:", updatedFeed.isPinned);
+    
+    // Check if this update includes pin status change
+    if (updatedFeed.isPinned !== undefined) {
+        updatePinnedFeedInUI(updatedFeed);
+    }
+});
 
 // ==========================================================
 // 3. INITIALIZATION & FORM HANDLERS
