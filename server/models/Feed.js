@@ -31,6 +31,12 @@ const feedSchema = new mongoose.Schema(
       required: false           // Only required if type is 'reshare'
     },
 
+    // Target user for profile shares
+    targetUser: {
+      type: String, // Store username or user ID
+      required: false
+    },
+
     // 🟢 ADD PIN FIELDS HERE
     isPinned: {
       type: Boolean,

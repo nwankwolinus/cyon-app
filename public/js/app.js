@@ -295,7 +295,7 @@ export async function togglePinFeed(feedId) {
 }
 
 // 🟢 ADD THIS HELPER FUNCTION to implement the backend endpoint)
-async function fetchUsers() {
+export async function fetchUsers() {
     try {
         const token = getToken();
         const response = await fetch(`${getBackendBaseUrl()}/api/users`, {

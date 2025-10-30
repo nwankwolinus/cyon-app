@@ -44,7 +44,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB connection
@@ -112,14 +112,14 @@ mongoose.connect(uri, mongooseOptions)
       });
     });
 
-    // 🚀 START THE HTTP SERVER (CRUCIAL FIX)
+    // 🚀 START THE HTTP SERVER
     const PORT = process.env.PORT || 5001;
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 CORS enabled for file uploads with 60s timeout`);
     });
 
-    // MongoDB event listeners (for monitoring)
+    // MongoDB event listeners
     mongoose.connection.on('connected', () => {
       console.log('✅ Mongoose connected to MongoDB');
     });
@@ -147,6 +147,10 @@ mongoose.connect(uri, mongooseOptions)
     process.exit(1);
   });
 
+// ==========================================================
+// 🎯 ROUTES (MUST COME BEFORE CATCH-ALL)
+// ==========================================================
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ 
@@ -168,25 +172,28 @@ app.use("/api/notifications", require("./routes/notifications"));
 
 console.log('✅ All routes loaded');
 
+// ==========================================================
+// 🎯 SPA CATCH-ALL ROUTE (MUST BE LAST)
+// ==========================================================
 
-// Error handling middleware (Must be second-to-last)
+// Serve feeds.html for the root route
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/feeds.html"));
+});
+
+// ==========================================================
+// 🎯 ERROR HANDLING MIDDLEWARE (MUST BE VERY LAST)
+// ==========================================================
+
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('💥 Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// ----------------------------------------------------------------------
-// 🟢 THE ULTIMATE CATCH-ALL (MUST BE THE LAST THING EXECUTED)
-// Handles SPA routing (e.g., /feeds/123) and general 404s.
-// ----------------------------------------------------------------------
-app.use((req, res, next) => {
-    // If it's an unmatched GET request, serve the main HTML file.
-    if (req.method === 'GET') {
-        return res.sendFile(path.join(__dirname, "public", "feeds.html"));
-    }
-    
-    // For all other unmatched requests (POST/PUT to wrong paths), return 404 JSON.
-    res.status(404).json({ error: 'Route not found' });
+// 404 handler for API routes (non-GET requests)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
 module.exports = app;

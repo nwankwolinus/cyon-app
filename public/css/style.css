@@ -559,3 +559,105 @@ body {
   color: #666;
   font-style: italic;
 }
+
+/* User Search Styles */
+.profile-share-section {
+  margin: 15px 0;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.profile-share-section h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-search-container {
+  position: relative;
+}
+
+.user-search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.user-search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.user-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+
+.user-search-result {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-search-result:hover {
+  background: #f8f9fa;
+}
+
+.user-search-result:last-child {
+  border-bottom: none;
+}
+
+.user-search-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-search-info {
+  flex: 1;
+}
+
+.user-search-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+}
+
+.user-search-username {
+  font-size: 12px;
+  color: #666;
+}
+
+.user-search-church {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.no-users-found {
+  padding: 15px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
