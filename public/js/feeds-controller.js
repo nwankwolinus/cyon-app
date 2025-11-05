@@ -328,15 +328,15 @@ class FeedsController {
     const showNotificationsBtn = document.getElementById("showNotificationsBtn");
     const showAttendanceBtn = document.getElementById("showAttendanceBtn");
     const showDashboardBtn = document.getElementById("showDashboardBtn");
-    const showProfileBtn = document.getElementById("showProfileBtn");
     const showDuesBtn = document.getElementById("showDuesBtn");
+    const showProfileBtn = document.getElementById("showProfileBtn");
 
     const sections = {
       feeds: document.getElementById("feedsSection"),
       notifications: document.getElementById("notificationsSection"),
       attendance: document.getElementById("attendanceSection"),
-      dashboard: document.getElementById("duesSection"),
-      dues: document.getElementById("dashboardSection"),
+      dashboard: document.getElementById("dashboardSection"),
+      dues: document.getElementById("duesSection"),
       profile: document.getElementById("profileSection")
     };
 
