@@ -162,7 +162,9 @@ app.get("/api/health", (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', require('./routes/auth'));
+const authRoutes = require('./routes/auth'); // default export
+app.use('/api/auth', authRoutes);
+
 app.use('/api/admin', require('./routes/admin'));
 app.use("/api/attendance", require("./routes/attendance"));
 app.use("/api/dues", require("./routes/dues"));
@@ -178,9 +180,8 @@ console.log('✅ All routes loaded');
 
 // Serve feeds.html for the root route
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/feeds.html"));
+  res.sendFile(path.join(__dirname, "../public/welcome.html"));
 });
-
 // ==========================================================
 // 🎯 ERROR HANDLING MIDDLEWARE (MUST BE VERY LAST)
 // ==========================================================

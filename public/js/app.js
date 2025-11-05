@@ -1,28 +1,49 @@
-// app.js - API functions using shared utilities
-import { getBackendBaseUrl, redirectToLogin, getToken } from './utils.js';
+// app.js - API functions (ES6 Module Version)
 
-// Get base URL from shared utility
+import { getBackendBaseUrl, getToken } from './utils.js';
+
 const backendBaseUrl = getBackendBaseUrl();
 const API_FEEDS = `${backendBaseUrl}/api/feeds`;
+
+// Helper function to handle API responses
+async function handleApiResponse(response, operation) {
+  if (!response) {
+    console.error(`❌ ${operation}: No response (likely auth issue)`);
+    return null;
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'No error details');
+    console.error(`❌ ${operation} failed: ${response.status} - ${errorText}`);
+    throw new Error(`${operation} failed: ${response.status}`);
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    console.log(`✅ ${operation} successful (no content)`);
+    return { success: true };
+  }
+}
 
 // Fetch feeds
 export async function fetchFeeds(page = 1) {
   try {
-    const token = getToken();
-    const res = await fetch(`${API_FEEDS}?page=${page}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (res.status === 401) {
-      redirectToLogin();
-      return [];
+    console.log('📥 Fetching feeds, page:', page);
+    
+    if (window.authService) {
+      const response = await window.authService.authenticatedFetch(`${API_FEEDS}?page=${page}`);
+      return await handleApiResponse(response, 'Fetch feeds');
+    } else {
+      const token = getToken();
+      const response = await fetch(`${API_FEEDS}?page=${page}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      return await handleApiResponse(response, 'Fetch feeds');
     }
-
-    if (!res.ok) throw new Error(`Failed to fetch feeds: ${res.status}`);
-    return await res.json();
   } catch (err) {
     console.error("Error fetching feeds:", err);
     return [];
@@ -32,22 +53,21 @@ export async function fetchFeeds(page = 1) {
 // Fetch a single feed by ID
 export async function fetchFeedById(feedId) {
   try {
-    const token = getToken();
-    const res = await fetch(`${API_FEEDS}/${feedId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (res.status === 401) {
-      redirectToLogin();
-      return null;
+    console.log('📥 Fetching feed:', feedId);
+    
+    if (window.authService) {
+      const response = await window.authService.authenticatedFetch(`${API_FEEDS}/${feedId}`);
+      return await handleApiResponse(response, `Fetch feed ${feedId}`);
+    } else {
+      const token = getToken();
+      const response = await fetch(`${API_FEEDS}/${feedId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      return await handleApiResponse(response, `Fetch feed ${feedId}`);
     }
-
-    if (!res.ok) throw new Error(`Failed to fetch feed ${feedId}: ${res.status}`);
-    return await res.json();
   } catch (err) {
     console.error("Error fetching single feed:", err);
     return null;
@@ -57,22 +77,24 @@ export async function fetchFeedById(feedId) {
 // Like feed
 export async function likeFeed(id) {
   try {
-    const token = getToken();
-    const res = await fetch(`${API_FEEDS}/${id}/like`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (res.status === 401) {
-      redirectToLogin();
-      return null;
-    }
+    console.log('👍 Liking feed:', id);
     
-    if (!res.ok) throw new Error("Failed to like post");
-    return await res.json();
+    if (window.authService) {
+      const response = await window.authService.authenticatedFetch(`${API_FEEDS}/${id}/like`, {
+        method: "POST"
+      });
+      return await handleApiResponse(response, `Like feed ${id}`);
+    } else {
+      const token = getToken();
+      const response = await fetch(`${API_FEEDS}/${id}/like`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      return await handleApiResponse(response, `Like feed ${id}`);
+    }
   } catch (err) {
     console.error("Error liking feed:", err);
     return null;
@@ -82,115 +104,116 @@ export async function likeFeed(id) {
 // Comment on feed
 export async function commentOnFeed(id, text) {
   try {
-    const token = getToken();
-    const res = await fetch(`${API_FEEDS}/${id}/comment`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ text }),
-    });
-
-    if (res.status === 401) {
-      redirectToLogin();
-      return null;
+    console.log('💬 Commenting on feed:', id);
+    
+    if (window.authService) {
+      const response = await window.authService.authenticatedFetch(`${API_FEEDS}/${id}/comment`, {
+        method: "POST",
+        body: JSON.stringify({ text }),
+      });
+      return await handleApiResponse(response, `Comment on feed ${id}`);
+    } else {
+      const token = getToken();
+      const response = await fetch(`${API_FEEDS}/${id}/comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text }),
+      });
+      return await handleApiResponse(response, `Comment on feed ${id}`);
     }
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Failed to post comment: ${res.status} - ${errorText}`);
-    } 
-
-    return await res.json();
   } catch (err) {
     console.error("Error commenting on feed:", err);
     throw err;
   }
 }
 
-// Create a new feed (text + optional image) - FIXED VERSION
+// Create a new feed (text + optional image)
 export async function createFeed(formData) {
   console.log('🔄 createFeed function STARTED');
 
   try {
-    const token = getToken();
-
-    if (!token) {
-      console.error('❌ No token found');
-      return { success: false, error: "No authentication token", shouldRedirect: true };
-    }
-
     console.log('🎯 Making request to:', API_FEEDS);
 
-    const response = await fetch(`${API_FEEDS}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
+    let response;
+    if (window.authService) {
+      response = await window.authService.authenticatedFetch(`${API_FEEDS}`, {
+        method: "POST",
+        body: formData,
+      });
+    } else {
+      const token = getToken();
+      response = await fetch(`${API_FEEDS}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+    }
 
     console.log('📨 Response received:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok
+      status: response?.status,
+      statusText: response?.statusText,
+      ok: response?.ok
     });
- 
-    if (response.status === 401) {
-      console.error('❌ 401 Unauthorized');
-      return { success: false, error: "Session expired", shouldRedirect: true };
+
+    if (!response) {
+      console.error('❌ No response - authentication issue');
+      return { success: false, error: "Authentication failed", shouldRedirect: true };
     }
 
     if (!response.ok) {
       console.error('🚨 Response not OK');
       const msg = await response.text().catch(() => "Server did not provide detailed error");
       console.error('📝 Error response body:', msg);
-      return { success: false, error: `Failed to create post: ${msg}`, shouldRedirect: false }; // ✅ RETURN
+      return { success: false, error: `Failed to create post: ${msg}`, shouldRedirect: false };
     }
     
     console.log('✅ Response OK, parsing JSON...');
     const result = await response.json();
     console.log('🎉 createFeed SUCCESS - Result:', result);
-    return { success: true, data: result }; // ✅ RETURN
+    return { success: true, data: result };
 
   } catch (err) {
     console.error("💥 createFeed COMPLETE FAILURE:", err);
-    return { success: false, error: err.message, shouldRedirect: false }; // ✅ RETURN
+    return { success: false, error: err.message, shouldRedirect: false };
   }
 }
 
 // Delete feed
 export async function deleteFeed(feedId) {
   try {
-    const token = getToken(); // ✅ FIXED: Use getToken() instead of localStorage
-    console.log('🔄 Starting delete for feed:', feedId);
+    console.log('🗑️ Starting delete for feed:', feedId);
     
-    const response = await fetch(`${API_FEEDS}/${feedId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    console.log('📨 Response status:', response.status);
-    
-    if (response.ok) {
-      try {
-        const result = await response.json();
-        console.log('✅ Delete successful:', result);
-        return true; 
-      } catch (e) {
-        console.log('✅ Delete successful (no content)');
-        return true;
-      }
+    let response;
+    if (window.authService) {
+      response = await window.authService.authenticatedFetch(`${API_FEEDS}/${feedId}`, {
+        method: "DELETE"
+      });
     } else {
-      const errorText = await response.text().catch(() => "Unknown error");
-      console.error('🚨 Server error:', errorText);
-      throw new Error(`Failed to delete post: ${response.status} - ${errorText}`);
+      const token = getToken();
+      response = await fetch(`${API_FEEDS}/${feedId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
     }
+
+    console.log('📨 Response status:', response?.status);
     
+    if (!response) {
+      console.error('❌ No response - authentication issue');
+      return false;
+    }
+
+    const result = await handleApiResponse(response, `Delete feed ${feedId}`);
+    return result !== null;
+
   } catch (err) {
     console.error("❌ Error in deleteFeed:", err);
     return false;
@@ -200,22 +223,26 @@ export async function deleteFeed(feedId) {
 // Delete a comment
 export async function deleteComment(feedId, commentId) {
   try {
-    const token = getToken();
-    const res = await fetch(`${API_FEEDS}/${feedId}/comment/${commentId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (res.status === 401) {
-      redirectToLogin();
-      return null;
+    console.log('🗑️ Deleting comment:', commentId, 'from feed:', feedId);
+    
+    let response;
+    if (window.authService) {
+      response = await window.authService.authenticatedFetch(
+        `${API_FEEDS}/${feedId}/comment/${commentId}`, 
+        { method: "DELETE" }
+      );
+    } else {
+      const token = getToken();
+      response = await fetch(`${API_FEEDS}/${feedId}/comment/${commentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
     }
-
-    if (!res.ok) throw new Error("Failed to delete comment");
-    return await res.json();
+    
+    return await handleApiResponse(response, `Delete comment ${commentId}`);
   } catch (err) {
     console.error("Error deleting comment:", err);
     return null;
@@ -225,92 +252,167 @@ export async function deleteComment(feedId, commentId) {
 // Update a feed
 export async function updateFeed(feedId, formData) {
   try {
-    const token = getToken();
-    const response = await fetch(`${API_FEEDS}/${feedId}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
+    console.log('✏️ updateFeed called for:', feedId);
+    console.log('📦 FormData contents:');
+    
+    // Log FormData contents (for debugging)
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`  ${key}: [File] ${value.name} (${value.size} bytes)`);
+      } else {
+        console.log(`  ${key}:`, value);
+      }
+    }
+
+    let response;
+    if (window.authService) {
+      console.log('🔐 Using authService for update...');
+      response = await window.authService.authenticatedFetch(`${API_FEEDS}/${feedId}`, {
+        method: "PUT",
+        body: formData,
+      });
+    } else {
+      console.log('🔐 Using manual token for update...');
+      const token = getToken();
+      response = await fetch(`${API_FEEDS}/${feedId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+    }
+
+    console.log('📡 Update response:', {
+      status: response?.status,
+      statusText: response?.statusText,
+      ok: response?.ok
     });
 
-    if (response.status === 401) {
-      redirectToLogin();
-      return null;
+    if (!response) {
+      console.error('❌ No response - authentication issue');
+      throw new Error('Authentication failed - please log in again');
     }
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "Server returned error without details");
-      throw new Error(`Failed to update feed: ${response.status} - ${errorText}`);
+      const errorText = await response.text();
+      console.error('❌ Update failed:', response.status, errorText);
+      throw new Error(`Update failed (${response.status}): ${errorText}`);
     }
 
-    return await response.json(); 
+    const result = await handleApiResponse(response, `Update feed ${feedId}`);
+    console.log('✅ Update successful:', result);
+    return result;
     
   } catch (error) {
-    console.error("API Error updating feed:", error);
-    return null;
+    console.error("💥 updateFeed error:", error);
+    throw error; // Re-throw so caller can handle it
   }
 }
 
-// In app.js - Updated togglePinFeed function
+// Toggle pin feed
 export async function togglePinFeed(feedId) {
-    try {
-        const token = getToken();
-        if (!token) {
-            throw new Error('Please log in to pin posts');
+  try {
+    console.log('📌 Toggling pin for feed:', feedId);
+
+    const url = `${API_FEEDS}/${feedId}/toggle-pin`;
+    console.log('🎯 Making pin request to:', url);
+
+    let response;
+    if (window.authService) {
+      response = await window.authService.authenticatedFetch(url, {
+        method: 'PATCH'
+      });
+    } else {
+      const token = getToken();
+      response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-
-        const url = `${API_FEEDS}/${feedId}/toggle-pin`;
-        console.log('🎯 Making pin request to:', url);
-
-        const response = await fetch(url, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        console.log('📡 Pin response:', {
-            url: url,
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'No error details');
-            console.error('🚨 Server error:', errorText);
-            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('✅ Pin toggle successful:', result);
-        return result;
-        
-    } catch (error) {
-        console.error('❌ Pin toggle failed:', error);
-        throw error;
+      });
     }
+
+    console.log('📡 Pin response:', {
+      url: url,
+      status: response?.status,
+      statusText: response?.statusText,
+      ok: response?.ok
+    });
+
+    if (!response) {
+      console.error('❌ No response - authentication issue');
+      throw new Error('Authentication failed');
+    }
+
+    return await handleApiResponse(response, `Toggle pin ${feedId}`);
+        
+  } catch (error) {
+    console.error('❌ Pin toggle failed:', error);
+    throw error;
+  }
 }
 
-// 🟢 ADD THIS HELPER FUNCTION to implement the backend endpoint)
+// Fetch users
 export async function fetchUsers() {
-    try {
-        const token = getToken();
-        const response = await fetch(`${getBackendBaseUrl()}/api/users`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            return await response.json();
+  try {
+    console.log('👥 Fetching users');
+    
+    let response;
+    if (window.authService) {
+      response = await window.authService.authenticatedFetch(`${backendBaseUrl}/api/users`);
+    } else {
+      const token = getToken();
+      response = await fetch(`${backendBaseUrl}/api/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-        return [];
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        return [];
+      });
     }
+    
+    if (!response) {
+      console.error('❌ No response - authentication issue');
+      return [];
+    }
+
+    if (response.ok) {
+      return await response.json();
+    }
+    
+    console.warn('⚠️ Fetch users failed:', response.status);
+    return [];
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+}
+
+// Health check (no auth required)
+export async function healthCheck() {
+  try {
+    const response = await fetch(`${backendBaseUrl}/api/health`);
+    return await response.json();
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return { status: 'error', message: error.message };
+  }
+}
+
+// Also expose via window for backward compatibility with non-module scripts
+if (typeof window !== 'undefined') {
+  window.app = {
+    fetchFeeds,
+    fetchFeedById,
+    likeFeed,
+    commentOnFeed,
+    createFeed,
+    deleteFeed,
+    deleteComment,
+    updateFeed,
+    togglePinFeed,
+    fetchUsers,
+    healthCheck
+  };
 }

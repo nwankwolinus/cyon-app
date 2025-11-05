@@ -4,40 +4,289 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-
     <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .error-message {
+            color: #ff4444;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+        .input-error {
+            border-color: #ff4444 !important;
+        }
+        .success-message {
+            color: #00C851;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .password-strength {
+            margin-top: 5px;
+            font-size: 0.8em;
+        }
+        .strength-weak { color: #ff4444; }
+        .strength-medium { color: #ffbb33; }
+        .strength-strong { color: #00C851; }
+    </style>
 </head>
 <body>
     <div class="auth-container">
         <h2>Create Account</h2>
         <form id="registerForm">
-            <input type="text" id="name" placeholder="Full Name" required />
-            <input type="email" id="email" placeholder="Email" required />
-            <input type="password" id="password" placeholder="Password" required />
+            <!-- Name Field -->
+            <div class="input-group">
+                <input type="text" id="name" placeholder="Full Name" required />
+                <div id="nameError" class="error-message"></div>
+            </div>
 
-            <select id="gender" required>
-                <option value="" disabled selected>Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-            </select>
+            <!-- Email Field -->
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email" required />
+                <div id="emailError" class="error-message"></div>
+            </div>
 
-            <select id="church" required>
-                <option value="" disabled selected>Select Church</option>
-                <option value="ss_joachim_and_anne">SS Joachim & Anne</option>
-                <option value="st_marys">St. Mary's Ijagemo</option>
-                <option value="st_brendan">St. Brendan Ifesowapo</option>
-            </select>  
+            <!-- Password Field -->
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password" required />
+                <div id="passwordStrength" class="password-strength"></div>
+                <div id="passwordError" class="error-message"></div>
+            </div>
 
-            <input type="date" id="dob" required>
+            <!-- Confirm Password Field -->
+            <div class="input-group">
+                <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+                <div id="confirmPasswordError" class="error-message"></div>
+            </div>
 
-            <input type="text" id="profilePic" placeholder="Profile Picture URL (optional)">
+            <!-- Gender Field -->
+            <div class="input-group">
+                <select id="gender" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <div id="genderError" class="error-message"></div>
+            </div>
 
-            <button type="submit">Register</button>
+            <!-- Church Field -->
+            <div class="input-group">
+                <select id="church" required>
+                    <option value="" disabled selected>Select Church</option>
+                    <option value="ss_joachim_and_anne">SS Joachim & Anne</option>
+                    <option value="st_marys">St. Mary's Ijagemo</option>
+                    <option value="st_brendan">St. Brendan Ifesowapo</option>
+                </select>
+                <div id="churchError" class="error-message"></div>
+            </div>
+
+            <!-- Date of Birth Field -->
+            <div class="input-group">
+                <label for="dob" style="text-align: left; display: block; margin-bottom: 5px; color: #666;">
+                    Date of Birth
+                </label>
+                <input type="date" id="dob" required>
+                <div id="dobError" class="error-message"></div>
+            </div>
+
+            <!-- Profile Picture Field -->
+            <div class="input-group">
+                <input type="text" id="profilePic" placeholder="Profile Picture URL (optional)">
+                <div id="profilePicError" class="error-message"></div>
+            </div>
+
+            <button type="submit" id="registerBtn">Register</button>
         </form>
-        <p>Already have an account? <a href="login.html">login</a></p>
+        <p>Already have an account? <a href="login.html">Login</a></p>
         <div id="registerMessage"></div>
     </div>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- ✅ FIXED: Only necessary scripts, proper order -->
+    <script src="js/auth-service.js"></script>
     <script src="js/auth.js"></script>
+    
+    <script>
+        // Enhanced client-side validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerForm = document.getElementById('registerForm');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const passwordStrength = document.getElementById('passwordStrength');
+            const dobInput = document.getElementById('dob');
+            const profilePicInput = document.getElementById('profilePic');
+
+            // Set maximum date for DOB (at least 13 years old)
+            const today = new Date();
+            const minDate = new Date();
+            minDate.setFullYear(today.getFullYear() - 100);
+            const maxDate = new Date();
+            maxDate.setFullYear(today.getFullYear() - 13);
+
+            dobInput.max = maxDate.toISOString().split('T')[0];
+            dobInput.min = minDate.toISOString().split('T')[0];
+
+            // Password strength indicator
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                const strength = checkPasswordStrength(password);
+                passwordStrength.textContent = strength.text;
+                passwordStrength.className = `password-strength ${strength.class}`;
+            });
+
+            // Confirm password validation
+            confirmPasswordInput.addEventListener('input', function() {
+                validatePasswordMatch();
+            });
+
+            // Profile picture URL validation
+            profilePicInput.addEventListener('blur', function() {
+                validateProfilePicUrl(this.value);
+            });
+
+            // Form submission with enhanced validation
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    // Form will be submitted by auth.js
+                    const registerBtn = document.getElementById('registerBtn');
+                    registerBtn.disabled = true;
+                    registerBtn.textContent = 'Creating Account...';
+                }
+            });
+
+            function checkPasswordStrength(password) {
+                let strength = 0;
+                if (password.length >= 8) strength++;
+                if (password.match(/[a-z]+/)) strength++;
+                if (password.match(/[A-Z]+/)) strength++;
+                if (password.match(/[0-9]+/)) strength++;
+                if (password.match(/[!@#$%^&*(),.?":{}|<>]+/)) strength++;
+
+                switch(strength) {
+                    case 0:
+                    case 1:
+                    case 2:
+                        return { text: 'Weak password', class: 'strength-weak' };
+                    case 3:
+                    case 4:
+                        return { text: 'Medium strength', class: 'strength-medium' };
+                    case 5:
+                        return { text: 'Strong password', class: 'strength-strong' };
+                    default:
+                        return { text: '', class: '' };
+                }
+            }
+
+            function validatePasswordMatch() {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                const errorElement = document.getElementById('confirmPasswordError');
+
+                if (confirmPassword && password !== confirmPassword) {
+                    showError(confirmPasswordInput, errorElement, 'Passwords do not match');
+                    return false;
+                } else {
+                    clearError(confirmPasswordInput, errorElement);
+                    return true;
+                }
+            }
+
+            function validateProfilePicUrl(url) {
+                const errorElement = document.getElementById('profilePicError');
+                
+                if (!url.trim()) {
+                    clearError(profilePicInput, errorElement);
+                    return true;
+                }
+
+                try {
+                    new URL(url);
+                    clearError(profilePicInput, errorElement);
+                    return true;
+                } catch (e) {
+                    showError(profilePicInput, errorElement, 'Please enter a valid URL');
+                    return false;
+                }
+            }
+
+            function validateForm() {
+                let isValid = true;
+
+                const name = document.getElementById('name').value.trim();
+                if (!name) {
+                    showError(document.getElementById('name'), document.getElementById('nameError'), 'Name is required');
+                    isValid = false;
+                } else {
+                    clearError(document.getElementById('name'), document.getElementById('nameError'));
+                }
+
+                const email = document.getElementById('email').value.trim();
+                if (!email || !isValidEmail(email)) {
+                    showError(document.getElementById('email'), document.getElementById('emailError'), 'Valid email is required');
+                    isValid = false;
+                } else {
+                    clearError(document.getElementById('email'), document.getElementById('emailError'));
+                }
+
+                const password = passwordInput.value;
+                if (!password || password.length < 6) {
+                    showError(passwordInput, document.getElementById('passwordError'), 'Password must be at least 6 characters');
+                    isValid = false;
+                } else {
+                    clearError(passwordInput, document.getElementById('passwordError'));
+                }
+
+                if (!validatePasswordMatch()) {
+                    isValid = false;
+                }
+
+                const gender = document.getElementById('gender').value;
+                if (!gender) {
+                    showError(document.getElementById('gender'), document.getElementById('genderError'), 'Please select your gender');
+                    isValid = false;
+                } else {
+                    clearError(document.getElementById('gender'), document.getElementById('genderError'));
+                }
+
+                const church = document.getElementById('church').value;
+                if (!church) {
+                    showError(document.getElementById('church'), document.getElementById('churchError'), 'Please select your church');
+                    isValid = false;
+                } else {
+                    clearError(document.getElementById('church'), document.getElementById('churchError'));
+                }
+
+                const dob = dobInput.value;
+                if (!dob) {
+                    showError(dobInput, document.getElementById('dobError'), 'Date of birth is required');
+                    isValid = false;
+                } else {
+                    clearError(dobInput, document.getElementById('dobError'));
+                }
+
+                if (!validateProfilePicUrl(profilePicInput.value)) {
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            function showError(input, errorElement, message) {
+                input.classList.add('input-error');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+
+            function clearError(input, errorElement) {
+                input.classList.remove('input-error');
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

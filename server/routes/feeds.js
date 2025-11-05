@@ -17,10 +17,14 @@ const mapChurch = (churchKey) => {
 
 // Function to format feeds before sending
 const formatFeed = (feed) => {
+  // Defensive: skip if user is missing (should be filtered out, but double check)
+  if (!feed.user || !feed.user._doc) {
+    return null;
+  }
   return {
     ...feed._doc,
-    likeCount: feed.likes.length,
-    commentCount: feed.comments.length,
+    likeCount: Array.isArray(feed.likes) ? feed.likes.length : 0,
+    commentCount: Array.isArray(feed.comments) ? feed.comments.length : 0,
     user: {
       ...feed.user._doc,
       church: mapChurch(feed.user.church),
@@ -144,7 +148,9 @@ router.get("/", async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    res.json(feeds.map(formatFeed));
+    // Only keep feeds with a valid user
+    const validFeeds = feeds.filter(f => f.user && f.user._id); // <- stricter
+    res.json(validFeeds.map(formatFeed).filter(Boolean));
   } catch (err) {
     console.error("Error fetching feeds:", err);
     res.status(500).json({ error: err.message });

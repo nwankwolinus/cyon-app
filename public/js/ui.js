@@ -1,3 +1,5 @@
+// ui.js - UI Rendering and Event Handling (Fixed ES6 Module)
+
 import {
   fetchFeeds,
   likeFeed,
@@ -7,100 +9,155 @@ import {
   updateFeed,
   fetchFeedById,
   createFeed,
-  togglePinFeed,
-  fetchUsers
+  togglePinFeed
 } from "./app.js";
 
-import { getToken, redirectToLogin } from "./utils.js";
+import { getToken, redirectToLogin, timeAgo } from "./utils.js";
 
-// Import rendering functions from ui.js itself for internal use,
+// Get current user data (ALWAYS fresh from storage, no caching)
+function getCurrentUserFresh() {
+  console.log('🔍 getCurrentUserFresh() called');
+  
+  // Check all possible locations
+  const cyonUserData = localStorage.getItem('cyon_user_data');
+  const legacyUser = localStorage.getItem('user');
+  
+  console.log('📊 Storage check:', {
+    cyon_user_data: cyonUserData ? 'EXISTS' : 'NULL',
+    user: legacyUser ? 'EXISTS' : 'NULL'
+  });
+  
+  // Priority 1: Use authService
+  if (window.authService && typeof window.authService.getCurrentUser === 'function') {
+    const user = window.authService.getCurrentUser();
+    console.log('✅ Got user from authService:', user?.name, user?.id);
+    return user;
+  }
+  
+  // Priority 2: Use window.auth
+  if (window.auth && window.auth.getCurrentUser) {
+    const user = window.auth.getCurrentUser();
+    console.log('✅ Got user from window.auth:', user?.name, user?.id);
+    return user;
+  }
+  
+  // Priority 3: Check cyon_user_data
+  try {
+    if (cyonUserData) {
+      const user = JSON.parse(cyonUserData);
+      console.log('✅ Got user from cyon_user_data:', user?.name, user?.id);
+      return user;
+    }
+  } catch (error) {
+    console.warn('❌ Error parsing cyon_user_data:', error);
+  }
+  
+  // Priority 4: Check legacy user key
+  try {
+    if (legacyUser) {
+      const user = JSON.parse(legacyUser);
+      console.log('✅ Got user from legacy user:', user?.name, user?.id);
+      return user;
+    }
+  } catch (error) {
+    console.warn('❌ Error parsing legacy user:', error);
+  }
+  
+  console.error('❌ No user found in ANY storage location!');
+  console.log('📋 All localStorage keys:', Object.keys(localStorage));
+  return null;
+}
 
 // ==========================================================
-// 🎯 EVENT DELEGATION FOR BETTER PERFORMANCE
+// EVENT DELEGATION SYSTEM
 // ==========================================================
+
+export function initializeUI() {
+  console.log("🎯 Initializing UI event delegation...");
+  console.log("📊 Current user on init:", getCurrentUserFresh());
+  setupEventDelegation();
+  
+  // Initialize tagging system if available
+  if (window.taggingSystem && window.taggingSystem.initializeTaggingSystem) {
+    console.log("🏷️ Initializing tagging system...");
+    window.taggingSystem.initializeTaggingSystem();
+  }
+}
 
 function setupEventDelegation() {
-  console.log("🔧 Setting up event delegation...");
-
-  // Single event listener for all interactive elements
+  // Single event listener for all clicks
   document.addEventListener("click", async (e) => {
-    // --- Like Button ---
+    // Like button
     const likeBtn = e.target.closest(".like-btn");
     if (likeBtn) {
       e.preventDefault();
-      const id = likeBtn.dataset.id;
-      await handleLikeClick(id, likeBtn);
+      await handleLikeClick(likeBtn.dataset.id, likeBtn);
       return;
     }
 
-    // --- Comment Button (Toggle) ---
+    // Comment button (toggle)
     const commentBtn = e.target.closest(".comment-btn");
     if (commentBtn) {
       e.preventDefault();
-      const id = commentBtn.dataset.id;
-      toggleCommentsSection(id);
+      toggleCommentsSection(commentBtn.dataset.id);
       return;
     }
 
-    // --- Submit Comment Button ---
+    // Submit comment
     const submitCommentBtn = e.target.closest(".submit-comment");
     if (submitCommentBtn) {
       e.preventDefault();
-      const feedId = submitCommentBtn.dataset.id;
-      await handleCommentSubmit(feedId, submitCommentBtn);
+      await handleCommentSubmit(submitCommentBtn.dataset.id, submitCommentBtn);
       return;
     }
 
-    // --- Menu Button (Toggle) ---
+    // Menu button
     const menuBtn = e.target.closest(".menu-btn");
     if (menuBtn) {
       e.preventDefault();
       e.stopPropagation();
-      const feedId = menuBtn.dataset.id;
-      toggleMenu(feedId);
+      toggleMenu(menuBtn.dataset.id);
       return;
     }
 
-    // --- Handle edit post buttons ---
+    // Edit post
     const editBtn = e.target.closest(".edit-post");
     if (editBtn) {
       e.preventDefault();
       e.stopPropagation();
       const feedId = editBtn.dataset.id;
+      console.log('🎯 Edit button clicked for feed:', feedId);
       await handleEditPost(feedId);
       return;
     }
 
-    // --- Handle delete post buttons ---
+    // Delete post
     const deleteBtn = e.target.closest(".delete-post");
     if (deleteBtn) {
       e.preventDefault();
       e.stopPropagation();
-      const feedId = deleteBtn.dataset.id;
-      await handleDeletePost(feedId, deleteBtn);
+      await handleDeletePost(deleteBtn.dataset.id, deleteBtn);
       return;
     }
 
-    // --- Handle pin post buttons ---
+    // Pin post
     const pinBtn = e.target.closest(".pin-post");
     if (pinBtn) {
       e.preventDefault();
       e.stopPropagation();
-      const feedId = pinBtn.dataset.id;
-      await handlePinPost(feedId);
+      await handlePinPost(pinBtn.dataset.id);
       return;
     }
 
-    // --- Handle cancel edit buttons ---
+    // Cancel edit
     const cancelBtn = e.target.closest(".cancel-edit-btn");
     if (cancelBtn) {
       e.preventDefault();
-      const feedId = cancelBtn.dataset.id;
-      cancelEdit(feedId);
+      cancelEdit(cancelBtn.dataset.id);
       return;
     }
 
-    // --- Handle remove image button in edit form ---
+    // Remove image in edit form
     const removeBtn = e.target.closest(".remove-image-btn");
     if (removeBtn) {
       e.preventDefault();
@@ -108,71 +165,58 @@ function setupEventDelegation() {
       return;
     }
 
-    // --- Handle delete comment buttons ---
+    // Delete comment
     const deleteCommentBtn = e.target.closest(".delete-comment-btn");
     if (deleteCommentBtn) {
       e.preventDefault();
-      const feedId = deleteCommentBtn.dataset.feedId;
-      const commentId = deleteCommentBtn.dataset.commentId;
-      await handleDeleteComment(feedId, commentId);
+      await handleDeleteComment(deleteCommentBtn.dataset.feedId, deleteCommentBtn.dataset.commentId);
       return;
     }
 
-    // --- Share Button (Open Modal) ---
+    // Share button
     const shareBtn = e.target.closest(".share-btn");
     if (shareBtn) {
       e.preventDefault();
-      const feedId = shareBtn.dataset.id;
-      openShareModal(feedId);
+      openShareModal(shareBtn.dataset.id);
       return;
     }
 
-    // --- Share Option Button (Inside Modal) ---
+    // Share option
     const shareOptionBtn = e.target.closest(".share-option-btn");
     if (shareOptionBtn) {
       e.preventDefault();
-      const feedId = shareOptionBtn.dataset.id;
-      const target = shareOptionBtn.dataset.target;
-
-      await handleShareOptionClick(feedId, target);
-
-      console.log("✅ Share option executed:", target);
-
-      closeShareModal(feedId);
+      await handleShareOptionClick(shareOptionBtn.dataset.id, shareOptionBtn.dataset.target);
+      closeShareModal(shareOptionBtn.dataset.id);
       return;
     }
 
-    // --- Close Modal Button ---
+    // Close modal
     const closeModalBtn = e.target.closest(".close-modal-btn");
     if (closeModalBtn) {
       e.preventDefault();
-      const feedId = closeModalBtn.dataset.id;
-      console.log("Closing modal for ID:", feedId);
-      closeShareModal(feedId);
+      closeShareModal(closeModalBtn.dataset.id);
       return;
     }
 
-    // --- Handle View Original Links in Reshare Posts ---
+    // View original reshare
     const reshareLink = e.target.closest(".reshare-link");
     if (reshareLink) {
       e.preventDefault();
-      const originalFeedId = reshareLink.dataset.originalId;
-      handleViewOriginal(originalFeedId);
+      handleViewOriginal(reshareLink.dataset.originalId);
       return;
     }
   });
 
-  // Listener for Edit Form submission (using delegation on the whole document)
+  // Form submission delegation
   document.addEventListener("submit", async (e) => {
     const editForm = e.target.closest(".editPostForm");
     if (editForm) {
       e.preventDefault();
-      const feedId = editForm.dataset.id;
-      await handleEditFormSubmit(feedId, editForm);
+      await handleEditFormSubmit(editForm.dataset.id, editForm);
     }
   });
 
-  // Close menus when clicking outside the menu area
+  // Close menus on outside click
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".feed-menu")) {
       document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
@@ -181,28 +225,47 @@ function setupEventDelegation() {
     }
   });
 
-  // Handle Enter key in comment inputs (Keyboard Support)
+  // Enter key for comments
   document.addEventListener("keypress", (e) => {
     if (e.target.classList.contains("comment-input") && e.key === "Enter") {
       e.preventDefault();
       const feedId = e.target.id.replace("commentInput-", "");
-      const submitBtn = document.querySelector(
-        `.submit-comment[data-id="${feedId}"]`
-      );
-      if (submitBtn) {
-        handleCommentSubmit(feedId, submitBtn);
-      }
+      const submitBtn = document.querySelector(`.submit-comment[data-id="${feedId}"]`);
+      if (submitBtn) handleCommentSubmit(feedId, submitBtn);
     }
   });
 }
 
 // ==========================================================
-// 🎯 INDIVIDUAL EVENT HANDLERS
+// EVENT HANDLERS
 // ==========================================================
 
-async function handleDeletePost(feedId, deleteBtn) {
-  console.log("🗑️ Delete post clicked:", feedId);
+async function handleLikeClick(feedId, likeBtn) {
+  likeBtn.classList.toggle("liked");
+  
+  const feedElement = document.getElementById(`feed-${feedId}`);
+  const stats = feedElement?.querySelector(".feed-stats");
+  if (stats) {
+    const text = stats.textContent;
+    const match = text.match(/👍\s*(\d+)/);
+    let likeCount = match ? parseInt(match[1]) : 0;
+    likeCount += likeBtn.classList.contains("liked") ? 1 : -1;
+    stats.textContent = text.replace(/👍\s*\d+/, `👍 ${likeCount}`);
+  }
 
+  try {
+    await likeFeed(feedId);
+  } catch (err) {
+    likeBtn.classList.toggle("liked");
+    if (stats) {
+      const feeds = await fetchFeeds();
+      renderFeeds(feeds);
+    }
+    alert("Could not like this post.");
+  }
+}
+
+async function handleDeletePost(feedId, deleteBtn) {
   if (!confirm("Are you sure you want to delete this post?")) return;
 
   const originalText = deleteBtn.textContent;
@@ -211,25 +274,18 @@ async function handleDeletePost(feedId, deleteBtn) {
 
   try {
     const success = await deleteFeed(feedId);
-
     if (success) {
       const feedElement = document.getElementById(`feed-${feedId}`);
       if (feedElement) {
         feedElement.style.opacity = "0";
         feedElement.style.transform = "scale(0.8)";
         feedElement.style.transition = "all 0.3s ease";
-
-        setTimeout(() => {
-          if (feedElement.parentNode) {
-            feedElement.remove();
-          }
-        }, 300);
+        setTimeout(() => feedElement.remove(), 300);
       }
     } else {
-      throw new Error("Delete failed or unauthorized.");
+      throw new Error("Delete failed");
     }
   } catch (error) {
-    console.error("Delete failed:", error);
     alert("Failed to delete post: " + error.message);
     deleteBtn.textContent = originalText;
     deleteBtn.disabled = false;
@@ -246,44 +302,39 @@ async function handleDeleteComment(feedId, commentId) {
 
   try {
     const result = await deleteComment(feedId, commentId);
-
     if (result) {
       commentElement.remove();
-      export_updateCommentCount(feedId, -1);
-      console.log("✅ Comment deleted successfully.");
+      updateCommentCount(feedId, -1);
     } else {
-      throw new Error("Delete comment failed.");
+      throw new Error("Delete failed");
     }
   } catch (error) {
-    console.error("Comment deletion failed:", error);
     alert("Failed to delete comment: " + error.message);
     commentElement.style.opacity = "1";
   }
 }
 
 async function handlePinPost(feedId) {
-  console.log("📌 Pin/Unpin post clicked:", feedId);
-
-  const pinBtn = document.querySelector(`.pin-post[data-id="${feedId}"]`);
-  if (!pinBtn) return;
-
   const token = getToken();
   if (!token) {
-    console.error("❌ No authentication token found for pin operation");
     alert("Your session has expired. Please log in again.");
     redirectToLogin();
     return;
   }
 
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  if (currentUser.role !== "admin") {
+  // FIX: Get currentUser properly (no global variable)
+  const currentUser = getCurrentUserFresh();
+  
+  if (!currentUser || currentUser.role !== "admin") {
     alert("Only administrators can pin posts");
-
     document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
       menu.classList.remove("show");
     });
     return;
   }
+
+  const pinBtn = document.querySelector(`.pin-post[data-id="${feedId}"]`);
+  if (!pinBtn) return;
 
   const originalText = pinBtn.textContent;
   pinBtn.textContent = "Updating...";
@@ -291,28 +342,20 @@ async function handlePinPost(feedId) {
 
   try {
     const result = await togglePinFeed(feedId);
-
     if (result) {
-      pinBtn.textContent = result.feed.isPinned
-        ? "📌 Unpin Post"
-        : "📌 Pin Post";
-
-      alert(
-        `Post ${result.feed.isPinned ? "pinned" : "unpinned"} successfully!`
-      );
-
+      pinBtn.textContent = result.feed.isPinned ? "📌 Unpin Post" : "📌 Pin Post";
+      alert(`Post ${result.feed.isPinned ? 'pinned' : 'unpinned'} successfully!`);
+      
       const feeds = await fetchFeeds();
       renderFeeds(feeds);
     } else {
       throw new Error("Pin operation failed");
     }
   } catch (error) {
-    console.error("Pin operation failed:", error);
     alert("Failed to update pin status: " + error.message);
     pinBtn.textContent = originalText;
   } finally {
     pinBtn.disabled = false;
-
     document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
       menu.classList.remove("show");
     });
@@ -322,8 +365,7 @@ async function handlePinPost(feedId) {
 function toggleCommentsSection(feedId) {
   const section = document.getElementById(`comments-${feedId}`);
   if (section) {
-    section.style.display =
-      section.style.display === "block" ? "none" : "block";
+    section.style.display = section.style.display === "block" ? "none" : "block";
   }
 }
 
@@ -341,7 +383,6 @@ async function handleCommentSubmit(feedId, submitBtn) {
     await commentOnFeed(feedId, text);
     input.value = "";
   } catch (error) {
-    console.error("Failed to post comment:", error);
     alert("Failed to post comment. Please try again.");
   } finally {
     submitBtn.innerHTML = originalHTML;
@@ -361,50 +402,61 @@ function toggleMenu(feedId) {
 }
 
 async function handleEditPost(feedId) {
+  console.log('✏️ Edit post clicked:', feedId);
+  
   const card = document.getElementById(`feed-${feedId}`);
-  if (!card) return;
+  if (!card) {
+    console.error('❌ Feed card not found:', feedId);
+    return;
+  }
 
   try {
     const originalHTML = card.innerHTML;
-    card.innerHTML =
-      '<div style="text-align:center; padding: 20px;">Loading editor...</div>';
+    card.innerHTML = '<div style="text-align:center; padding: 20px;">Loading editor...</div>';
 
+    console.log('📥 Fetching feed data...');
     const feedToEdit = await fetchFeedById(feedId);
+    
     if (!feedToEdit) {
-      alert("Could not load post for editing.");
+      console.error('❌ Could not load feed for editing');
+      showErrorNotification("Could not load post for editing.");
       card.innerHTML = originalHTML;
       return;
     }
+    
+    console.log('✅ Feed loaded:', feedToEdit);
 
     card.dataset.originalHtml = originalHTML;
     card.dataset.editing = "true";
 
+    console.log('🎨 Creating edit form...');
     card.innerHTML = createEditForm(feedToEdit);
+    
+    console.log('🔧 Setting up form listeners...');
     setupEditFormListeners(feedId);
 
+    // Close any open menus
     document.querySelectorAll(".menu-dropdown.show").forEach((menu) => {
       menu.classList.remove("show");
     });
+    
+    console.log('✅ Edit form ready');
   } catch (error) {
-    console.error("Error loading post for editing:", error);
-    alert("Failed to load post for editing. " + error.message);
+    console.error('💥 Error loading post for editing:', error);
+    showErrorNotification("Failed to load post for editing: " + error.message);
     cancelEdit(feedId);
   }
 }
 
 function handleViewOriginal(originalFeedId) {
-  console.log("🔍 View Original clicked for:", originalFeedId);
-
   const isOnFeedsPage = window.location.pathname.includes("feeds.html");
 
   if (isOnFeedsPage) {
     const originalPost = document.getElementById(`feed-${originalFeedId}`);
     if (originalPost) {
       originalPost.scrollIntoView({ behavior: "smooth", block: "center" });
-
       originalPost.style.backgroundColor = "#fff9e6";
       originalPost.style.transition = "background-color 0.5s ease";
-
       setTimeout(() => {
         originalPost.style.backgroundColor = "";
       }, 3000);
@@ -417,36 +469,123 @@ function handleViewOriginal(originalFeedId) {
 }
 
 async function handleEditFormSubmit(feedId, form) {
+  console.log('💾 Form submitted for feed:', feedId);
+  
   const saveBtn = form.querySelector(".save-edit-btn");
+  const cancelBtn = form.querySelector(".cancel-edit-btn");
   const originalBtnText = saveBtn.textContent;
 
   saveBtn.textContent = "Saving...";
   saveBtn.disabled = true;
-  form.disabled = true;
+  if (cancelBtn) cancelBtn.disabled = true;
 
   try {
     const formData = new FormData(form);
-
-    console.log("🔄 Calling updateFeed API...");
-
+    
+    // Log what we're sending
+    console.log('📤 Sending form data:');
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`  ${key}:`, value.name || 'No file');
+      } else {
+        console.log(`  ${key}:`, value);
+      }
+    }
+    
+    console.log('🔄 Calling updateFeed API...');
     const updatedFeed = await updateFeed(feedId, formData);
 
+    console.log('📥 Update response:', updatedFeed);
+
     if (updatedFeed) {
-      console.log("✅ Post updated successfully. Awaiting socket re-render...");
+      console.log('✅ Post updated successfully');
+      
+      // OPTIMIZED: Exit edit mode and re-render immediately (no slow import)
+      const card = document.getElementById(`feed-${feedId}`);
+      if (card) {
+        delete card.dataset.editing;
+        delete card.dataset.originalHtml;
+        
+        // Re-render immediately with updated data
+        console.log('🔄 Re-rendering updated feed...');
+        renderSingleFeed(updatedFeed);
+        
+        // Show success notification
+        showSuccessNotification('Post updated successfully!');
+      }
+      
     } else {
-      throw new Error("Update failed on server.");
+      throw new Error("Update returned null - check backend logs");
     }
   } catch (error) {
-    console.error("💥 Edit Form Submission Error:", error);
-    alert(
-      "Failed to update post: " + error.message.split(": ")[1] ||
-        "Please try again."
-    );
-
+    console.error('💥 Edit form submission error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // Show user-friendly error
+    const errorMsg = error.message || 'Unknown error occurred';
+    showErrorNotification("Failed to update post: " + errorMsg);
+    
+  } finally {
+    // Re-enable buttons
     saveBtn.textContent = originalBtnText;
     saveBtn.disabled = false;
-    form.disabled = false;
+    if (cancelBtn) cancelBtn.disabled = false;
   }
+}
+
+// Helper function for success notifications
+function showSuccessNotification(message) {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #4CAF50;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    z-index: 10000;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease;
+  `;
+  notification.innerHTML = `✅ ${message}`;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transition = 'opacity 0.3s';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Helper function for error notifications
+function showErrorNotification(message) {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #f44336;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    z-index: 10000;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease;
+  `;
+  notification.innerHTML = `❌ ${message}`;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transition = 'opacity 0.3s';
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
 }
 
 export function cancelEdit(feedId) {
@@ -505,46 +644,26 @@ function setupEditFormListeners(feedId) {
 async function handleShareOptionClick(feedId, target) {
   const feedElement = document.getElementById(`feed-${feedId}`);
   const postText = feedElement
-    ? feedElement.querySelector(".feed-text").textContent.substring(0, 100) +
-      "..."
+    ? feedElement.querySelector(".feed-text")?.textContent?.substring(0, 100) + "..."
     : "Check out this post!";
   const shareUrl = `${window.location.origin}/feeds.html?feedId=${feedId}`;
 
   switch (target) {
     case "feeds":
-      console.log(
-        `API Call: Preparing to Re-post feed ${feedId} to main feeds page.`
-      );
-
       try {
-        const reshareData = {
-          type: "reshare",
-          originalFeedId: feedId,
-          text: `Shared post from feed ${feedId}. Check it out!`,
-        };
-
         const originalFeed = await fetchFeedById(feedId);
-        if (originalFeed && originalFeed.text) {
-          reshareData.text = originalFeed.text;
-        }
-
-        console.log("📝 Reshare content:", {
-          originalText: originalFeed?.text,
-          usingText: reshareData.text,
-          hasImage: !!originalFeed?.image,
-        });
+        let reshareText = originalFeed && originalFeed.text 
+          ? originalFeed.text 
+          : `Shared post from feed ${feedId}. Check it out!`;
 
         const formData = new FormData();
-        formData.append("type", reshareData.type);
-        formData.append("originalFeedId", reshareData.originalFeedId);
-        formData.append("text", reshareData.text);
+        formData.append("type", "reshare");
+        formData.append("originalFeedId", feedId);
+        formData.append("text", reshareText);
 
         await createFeed(formData);
-
-        console.log(`✅ API Call: Re-post ${feedId} to feeds page successful.`);
         alert("Post successfully re-posted to your feeds page!");
       } catch (error) {
-        console.error("Error re-posting to feeds:", error);
         alert("Error: Could not re-post to feeds page.");
       }
       break;
@@ -557,14 +676,13 @@ async function handleShareOptionClick(feedId, target) {
             text: postText,
             url: shareUrl,
           });
-          console.log("✅ External share successful (Web Share API).");
         } catch (error) {
           if (error.name !== "AbortError") {
             console.error("Error sharing externally:", error);
           }
         }
       } else {
-        alert("Web Share API not supported on this device. Use 'Copy Link'.");
+        alert("Web Share API not supported. Use 'Copy Link'.");
       }
       break;
 
@@ -572,10 +690,8 @@ async function handleShareOptionClick(feedId, target) {
       try {
         await navigator.clipboard.writeText(shareUrl);
         alert("Link copied to clipboard!");
-        console.log("✅ Link copied:", shareUrl);
       } catch (err) {
         alert("Could not copy link to clipboard.");
-        console.error("Clipboard write failed:", err);
       }
       break;
 
@@ -585,7 +701,7 @@ async function handleShareOptionClick(feedId, target) {
 }
 
 // ==========================================================
-// 🎯 RENDER FUNCTIONS (EXPORTED)
+// RENDER FUNCTIONS
 // ==========================================================
 
 export function renderSingleFeed(feed) {
@@ -613,7 +729,7 @@ export function renderFeeds(feeds) {
   const container = document.getElementById("feedContainer");
 
   if (!container) {
-    console.error("❌ CRITICAL: feedContainer element not found!");
+    console.error("❌ feedContainer element not found!");
     return;
   }
 
@@ -624,17 +740,11 @@ export function renderFeeds(feeds) {
     return;
   }
 
+  // Get fresh user data for rendering
+  const currentUser = getCurrentUserFresh();
+  console.log('📊 Rendering feeds for user:', currentUser?.name, currentUser?.role);
+  
   const sortedFeeds = sortFeeds(feeds);
-
-  console.log(
-    "📌 Sorted feeds:",
-    sortedFeeds.map((f) => ({
-      id: f._id,
-      pinned: f.isPinned,
-      date: f.createdAt,
-      pinnedAt: f.pinnedAt,
-    }))
-  );
 
   sortedFeeds.forEach((feed) => {
     const card = document.createElement("div");
@@ -648,15 +758,9 @@ export function renderFeeds(feeds) {
 export function updatePinnedFeedInUI(updatedFeed) {
   const feedElement = document.getElementById(`feed-${updatedFeed._id}`);
 
-  if (feedElement) {
-    if (feedElement.dataset.editing !== "true") {
-      feedElement.innerHTML = generateFeedHTML(updatedFeed);
-      console.log("✅ Pin status updated in UI for feed:", updatedFeed._id);
-    }
+  if (feedElement && feedElement.dataset.editing !== "true") {
+    feedElement.innerHTML = generateFeedHTML(updatedFeed);
   } else {
-    console.log(
-      "🔄 Feed not in current view, refreshing feeds for proper sorting..."
-    );
     setTimeout(async () => {
       const feeds = await fetchFeeds();
       renderFeeds(feeds);
@@ -665,18 +769,30 @@ export function updatePinnedFeedInUI(updatedFeed) {
 }
 
 function generateFeedHTML(feed) {
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  // ALWAYS get fresh user data from storage (no caching)
+  const currentUser = getCurrentUserFresh();
+  
+  if (!currentUser || !currentUser.id) {
+    console.error('❌ No valid current user found in generateFeedHTML');
+    console.log('Available storage keys:', Object.keys(localStorage));
+    console.log('cyon_user_data:', localStorage.getItem('cyon_user_data'));
+    return '<div class="error">Authentication error - Please refresh the page</div>';
+  }
+  
+  console.log('👤 Rendering feed with user:', {
+    name: currentUser.name,
+    id: currentUser.id,
+    role: currentUser.role
+  });
 
   const isReshare = feed.type === "reshare";
   const originalFeedId = feed.originalFeed;
 
   let shouldShowText = false;
-
   if (feed.text) {
     if (isReshare) {
       const defaultReshareText = `Shared post from feed ${originalFeedId}. Check it out!`;
-      const isDefaultMessage = feed.text.trim() === defaultReshareText.trim();
-      shouldShowText = !isDefaultMessage;
+      shouldShowText = feed.text.trim() !== defaultReshareText.trim();
     } else {
       shouldShowText = true;
     }
@@ -693,10 +809,7 @@ function generateFeedHTML(feed) {
     ? `<img src="${feed.image}" alt="Feed Image" class="feed-image" onerror="this.style.display='none';" />`
     : "";
 
-  const menuHTML = showMenu
-    ? generateMenuHTML(feed, canEdit, canPin, canDelete)
-    : "";
-
+  const menuHTML = showMenu ? generateMenuHTML(feed, canEdit, canPin, canDelete) : "";
   const likeCount = feed.likes?.length || feed.likeCount || 0;
   const commentCount = feed.comments?.length || feed.commentCount || 0;
   const commentsHTML = generateCommentsHTML(feed);
@@ -704,25 +817,16 @@ function generateFeedHTML(feed) {
   let reshareIndicatorHTML = "";
   if (isReshare) {
     reshareIndicatorHTML = `
-          <div class="feed-reshare-indicator">
-              <i class="fas fa-retweet"></i> ${
-                feed.user?.name || "A User"
-              } shared a post
-              ${
-                originalFeedId
-                  ? `<span class="reshare-link" data-original-id="${originalFeedId}">View Original</span>`
-                  : ""
-              }
-          </div>
-      `;
+      <div class="feed-reshare-indicator">
+        <i class="fas fa-retweet"></i> ${feed.user?.name || "A User"} shared a post
+        ${originalFeedId ? `<span class="reshare-link" data-original-id="${originalFeedId}">View Original</span>` : ""}
+      </div>
+    `;
   }
 
   return `
-    <div class="feed-card ${
-      isReshare ? "reshared-feed" : "original-feed"
-    }" data-id="${feed._id}">
-        
-      ${reshareIndicatorHTML} 
+    <div class="feed-card ${isReshare ? "reshared-feed" : "original-feed"}" data-id="${feed._id}">
+      ${reshareIndicatorHTML}
       
       <div class="feed-header">
         <div class="user-info">
@@ -730,12 +834,8 @@ function generateFeedHTML(feed) {
                 alt="User Avatar" class="avatar" />
           <div>
             <h4 class="username">
-                ${feed.user?.name || "Unknown User"}
-                ${
-                  currentUser.role === "admin"
-                    ? '<span class="admin-badge">ADMIN</span>'
-                    : ""
-                }
+              ${feed.user?.name || "Unknown User"}
+              ${currentUser.role === "admin" ? '<span class="admin-badge">ADMIN</span>' : ""}
             </h4>
             <span class="churchAttend">${feed.user?.church || ""}</span>
             <span class="timestamp">${timeAgo(feed.createdAt)}</span>
@@ -744,18 +844,13 @@ function generateFeedHTML(feed) {
         ${menuHTML}
       </div>
 
-      ${shouldShowText ? `<p class="feed-text">${feed.text || ""}</p>` : ""} 
-      
+      ${shouldShowText ? `<p class="feed-text">${feed.text || ""}</p>` : ""}
       ${imageHTML}
 
       <div class="feed-actions">
-        <button class="like-btn ${isLiked ? "liked" : ""}" data-id="${
-    feed._id
-  }">👍 Like</button>
+        <button class="like-btn ${isLiked ? "liked" : ""}" data-id="${feed._id}">👍 Like</button>
         <button class="comment-btn" data-id="${feed._id}">💬 Comment</button>
-        <button class="share-btn" data-id="${feed._id}" data-text="${(
-    feed.text || ""
-  ).substring(0, 100)}...">
+        <button class="share-btn" data-id="${feed._id}">
           <img src="./images/share-green.png" alt="Share" class="share-icon" style="width:30px; height:auto; border-radius:1px;"> Share
         </button>
       </div>
@@ -764,9 +859,7 @@ function generateFeedHTML(feed) {
         👍 ${likeCount} Likes · 💬 ${commentCount} Comments
       </div>
 
-      <div class="comments-section" id="comments-${
-        feed._id
-      }" style="display:none;">
+      <div class="comments-section" id="comments-${feed._id}" style="display:none;">
         <div class="comments-list">
           ${commentsHTML}
         </div>
@@ -781,27 +874,21 @@ function generateFeedHTML(feed) {
 }
 
 function generateMenuHTML(feed, canEdit, canPin, canDelete) {
+  console.log('🎛️ Generating menu:', {
+    feedId: feed._id,
+    canEdit,
+    canPin,
+    canDelete,
+    isPinned: feed.isPinned
+  });
+  
   return `
     <div class="feed-menu">
       <button class="menu-btn" data-id="${feed._id}">⋯</button>
       <div class="menu-dropdown" id="menu-${feed._id}">
-        ${
-          canEdit
-            ? `<button class="menu-item edit-post" data-id="${feed._id}">✏️ Edit Post</button>`
-            : ""
-        }
-        ${
-          canPin
-            ? `<button class="menu-item pin-post" data-id="${feed._id}">📌 ${
-                feed.isPinned ? "📌 Unpin Post" : "📌 Pin Post"
-              }</button>`
-            : ""
-        }
-        ${
-          canDelete
-            ? `<button class="menu-item delete-post" data-id="${feed._id}">🗑️ Delete Post</button>`
-            : ""
-        }
+        ${canEdit ? `<button class="menu-item edit-post" data-id="${feed._id}">✏️ Edit Post</button>` : ""}
+        ${canPin ? `<button class="menu-item pin-post" data-id="${feed._id}">${feed.isPinned ? "📌 Unpin Post" : "📌 Pin Post"}</button>` : ""}
+        ${canDelete ? `<button class="menu-item delete-post" data-id="${feed._id}">🗑️ Delete Post</button>` : ""}
       </div>
     </div>
   `;
@@ -809,13 +896,18 @@ function generateMenuHTML(feed, canEdit, canPin, canDelete) {
 
 function generateCommentsHTML(feed) {
   if (!feed.comments || feed.comments.length === 0) return "";
-  return feed.comments
-    .map((comment) => export_renderComment(feed._id, comment))
-    .join("");
+  return feed.comments.map((comment) => renderComment(feed._id, comment)).join("");
 }
 
 export function renderComment(feedId, comment) {
-  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  // FIX: Get fresh user data (don't use global variable)
+  const currentUser = getCurrentUserFresh();
+  
+  if (!currentUser || !currentUser.id) {
+    console.error('❌ No valid current user in renderComment');
+    return '<div class="comment-error">Unable to load comment</div>';
+  }
+  
   const isOwner = currentUser.id === comment.user?._id;
   const isAdmin = currentUser.role === "admin";
   const canDelete = isAdmin || isOwner;
@@ -827,9 +919,7 @@ export function renderComment(feedId, comment) {
   return `
     <div class="comment" id="comment-${comment._id}">
       <div class="comment-header">
-        <img src="${
-          comment.user?.profilePic || "./images/default-avatar.png"
-        }" alt="Avatar" class="comment-avatar"/>
+        <img src="${comment.user?.profilePic || "./images/default-avatar.png"}" alt="Avatar" class="comment-avatar"/>
         <b class="comment-username">${comment.user?.name || "Unknown User"}:</b>
         ${deleteBtn}
       </div>
@@ -866,7 +956,7 @@ export function createEditForm(feed) {
     : "";
 
   return `
-    <div class="feed-edit-form" id="edit-form-container-${feedId}" data-has-original-image="${hasImage}">
+    <div class="feed-edit-form" id="edit-form-container-${feedId}">
       <form class="editPostForm" data-id="${feedId}">
         <textarea name="text" rows="4" required>${feed.text || ""}</textarea>
         <div class="image-upload-area">
@@ -920,9 +1010,7 @@ function openShareModal(feedId) {
 
 function closeShareModal(feedId) {
   const modal = document.getElementById(`shareModal-${feedId}`);
-  if (modal) {
-    modal.style.display = "none";
-  }
+  if (modal) modal.style.display = "none";
 }
 
 function sortFeeds(feeds) {
@@ -932,26 +1020,35 @@ function sortFeeds(feeds) {
       const bPinDate = b.pinnedAt || b.updatedAt || b.createdAt;
       return new Date(bPinDate) - new Date(aPinDate);
     }
-
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
-
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 }
 
-function timeAgo(dateString) {
-  const now = new Date();
-  const postDate = new Date(dateString);
-  const diff = Math.floor((now - postDate) / 1000);
-
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
-
-export function initializeUI() {
-  console.log("🎯 Initializing UI event delegation...");
-  setupEventDelegation();
+// Render text with @mentions highlighted
+function renderTextWithMentions(text) {
+  if (!text) return '';
+  
+  // Escape HTML to prevent XSS
+  const escapedText = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+  
+  // Match @username patterns (letters, numbers, underscores)
+  const mentionRegex = /@([\w]+)/g;
+  
+  return escapedText.replace(mentionRegex, (match, username) => {
+    return `<span class="mention-tag" style="
+      color: #1976d2;
+      background: #e3f2fd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+    " data-username="${username}" title="@${username}">@${username}</span>`;
+  });
 }

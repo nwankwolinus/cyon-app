@@ -1,3 +1,5 @@
+// middleware/auth.js
+const { isTokenBlacklisted } = require('../utils/tokenBlacklist');
 const jwt = require('jsonwebtoken');
 
 function auth(req, res, next) {
@@ -9,6 +11,11 @@ function auth(req, res, next) {
 
   const token = authHeader.split(" ")[1];
 
+  // Check if token is blacklisted
+  if (isTokenBlacklisted(token)) {
+    return res.status(401).json({ msg: 'Token has been blacklisted' });
+  }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // { id, role }
@@ -18,4 +25,5 @@ function auth(req, res, next) {
   }
 }
 
+// ✅ Export the middleware function, NOT router
 module.exports = auth;

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome - CYON SS Joachim and Anne Ijegun</title>
+    <link rel="stylesheet" href="css/style.css" />
+    
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    
+    <style>
+        /* Welcome page specific styles */
+        .welcome-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .welcome-hero h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .welcome-hero p {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .welcome-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .welcome-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .welcome-btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-3px);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3em;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .church-info {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 40px 0;
+        }
+        
+        .church-name {
+            color: #4CAF50;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-footer {
+            text-align: center;
+            padding: 40px 20px;
+            background: #333;
+            color: white;
+            margin-top: 60px;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .welcome-hero h1 {
+                font-size: 2em;
+            }
+            
+            .welcome-hero p {
+                font-size: 1.1em;
+            }
+            
+            .welcome-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .welcome-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        /* Hide nav buttons on welcome page */
+        .nav-links button {
+            display: none;
+        }
+        
+        .nav-links .login-btn {
+            display: inline-block !important;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links .login-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="logo-section">
+        <div class="logo">
+          <img src="images/cyon-logo-png.png" alt="CYON Logo" class="logo" />
+          <img
+            src="images/ss-joachim-anne.jpeg"
+            alt="Ss Joachim and Anne Logo"
+            class="logo"
+          />
+        </div>
+
+        <div class="logo-text">
+          <div class="org-name">
+            The Catholic Youth Organization of Nigeria
+          </div>
+          <div class="church-name">
+            SS Joachim & Anne Catholic Church Ijegun
+          </div>
+        </div>
+
+        <div class="nav-links" id="navlinks">
+          <a href="login.html" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </a>
+        </div>
+
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile dropdown menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="login.html">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+      <a href="register.html">
+        <i class="fas fa-user-plus"></i> Register
+      </a>
+    </div>
+
+    <!-- Welcome Hero Section -->
+    <section class="welcome-hero">
+      <div class="welcome-container">
+        <h1>Welcome to Our CYON Community</h1>
+        <p>Connect, share, and grow together in faith with your church family at SS Joachim & Anne Catholic Church Ijegun</p>
+        
+        <div class="welcome-buttons">
+          <a href="register.html" class="welcome-btn btn-primary">
+            <i class="fas fa-user-plus"></i> Create New Account
+          </a>
+          <a href="login.html" class="welcome-btn btn-secondary">
+            <i class="fas fa-sign-in-alt"></i> I Have an Account
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="welcome-container">
+      <div class="church-info">
+        <div class="church-name">SS Joachim & Anne Catholic Church Ijegun</div>
+        <p>Building a vibrant Catholic youth community through faith, fellowship, and service</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>Community Connection</h3>
+          <p>Stay connected with fellow CYON members, share experiences, and build lasting relationships within our church community.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-pray"></i>
+          </div>
+          <h3>Spiritual Growth</h3>
+          <p>Share inspirational messages, prayer requests, and faith experiences to strengthen your spiritual journey.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <h3>Event Updates</h3>
+          <p>Get real-time updates about church events, CYON meetings, and special celebrations.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-bullhorn"></i>
+          </div>
+          <h3>Announcements</h3>
+          <p>Receive important announcements from church leadership and CYON executives instantly.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-handshake"></i>
+          </div>
+          <h3>Service Opportunities</h3>
+          <p>Discover volunteer opportunities and ways to serve our church and community.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <h3>Support System</h3>
+          <p>Find encouragement and support from your church family during both joyful and challenging times.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="welcome-container" style="text-align: center;">
+      <h2 style="color: #333; margin-bottom: 20px;">Ready to Join Our Community?</h2>
+      <p style="color: #666; margin-bottom: 30px; font-size: 1.1em;">
+        Become part of our growing digital parish community and stay connected with your faith family.
+      </p>
+      <div class="welcome-buttons">
+        <a href="register.html" class="welcome-btn btn-primary" style="background: #333;">
+          <i class="fas fa-user-plus"></i> Get Started Today
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="welcome-footer">
+      <div class="welcome-container">
+        <p>&copy; 2024 CYON SS Joachim & Anne Catholic Church Ijegun. All rights reserved.</p>
+        <p>Building Faith, Building Community, Building Future</p>
+      </div>
+    </footer>
+
+    <!-- ✅ FIXED: Minimal scripts needed for welcome page -->
+    <script>
+        // Mobile menu toggle
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const icon = hamburger?.querySelector('i');
+
+        if (hamburger && mobileMenu) {
+            hamburger.addEventListener('click', () => {
+                const isOpen = mobileMenu.classList.contains('active');
+                if (isOpen) {
+                    mobileMenu.classList.remove('active');
+                    if (icon) icon.classList.replace('fa-times', 'fa-bars');
+                } else {
+                    mobileMenu.classList.add('active');
+                    if (icon) icon.classList.replace('fa-bars', 'fa-times');
+                }
+            });
+
+            // Close on outside click
+            document.addEventListener('click', (e) => {
+                if (mobileMenu.classList.contains('active') &&
+                    !mobileMenu.contains(e.target) &&
+                    !hamburger.contains(e.target)) {
+                    mobileMenu.classList.remove('active');
+                    if (icon) icon.classList.replace('fa-times', 'fa-bars');
+                }
+            });
+        }
+
+        // Auto-redirect if authenticated
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('cyon_user_data') || '{}');
+            const token = user.token;
+            
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (payload.exp * 1000 > Date.now()) {
+                        window.location.href = 'feeds.html';
+                        return;
+                    }
+                } catch (error) {
+                    console.log('Welcome: Token invalid or expired');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('cyon_user_data');
+                }
+            }
+
+            // Logout success message
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout') === 'success') {
+                const tempMessage = document.createElement('div');
+                tempMessage.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #4CAF50;
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 5px;
+                    z-index: 10000;
+                    font-weight: bold;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                `;
+                tempMessage.innerHTML = '<i class="fas fa-check-circle"></i> You have been successfully logged out!';
+                document.body.appendChild(tempMessage);
+                
+                setTimeout(() => {
+                    tempMessage.remove();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }, 3000);
+            }
+        });
+    </script>
+  </body>
+</html>

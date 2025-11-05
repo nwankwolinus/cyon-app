@@ -7,24 +7,31 @@ const auth = require("../middleware/auth");
 
 const router = express.Router();
 
+const { addToBlacklist } = require('../utils/tokenBlacklist');
+
+
+
 /**
  * @route   POST /api/auth/register
  * @desc    Register a new user
  * @access  Public
  */
-
-router.post("/register", async (req, res) => {
+// routes/auth.js
+router.post('/register', async (req, res) => {
   const { name, email, password, church, profilePic, gender, dob } = req.body;
 
   try {
+    // Check for existing email
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: "User already exists" });
+      return res.status(400).json({ msg: 'User already exists' });
     }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create user with default role 'probation'
     user = new User({
       name,
       email,
@@ -37,10 +44,13 @@ router.post("/register", async (req, res) => {
 
     await user.save();
 
+    // Generate token
     const payload = { id: user.id, role: user.role };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
+    // Send response
     res.status(201).json({
+      msg: 'Registration successful',
       token,
       user: {
         id: user.id,
@@ -55,7 +65,7 @@ router.post("/register", async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 });
 
@@ -88,7 +98,9 @@ router.post("/login", async (req, res) => {
         email: user.email,
         role: user.role,
         church: user.church,
-        profilePic: user.profilePic
+        profilePic: user.profilePic,
+        gender: user.gender,
+        dob: user.dob
       }
     });
   } catch (err) {
@@ -98,18 +110,74 @@ router.post("/login", async (req, res) => {
 });
 
 /**
- * @route   GET /api/auth/me
- * @desc    Get logged-in user
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh JWT token
  * @access  Private
  */
-router.get("/me", auth, async (req, res) => {
+router.post("/refresh", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    res.json(user);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
+    console.log('🔄 Token refresh requested for user:', req.user.id);
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Generate new token with same expiration (1 day)
+    const payload = { id: user.id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    console.log('✅ Token refreshed for:', user.email);
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        church: user.church,
+        profilePic: user.profilePic,
+        gender: user.gender,
+        dob: user.dob
+      }
+    });
+  } catch (error) {
+    console.error('❌ Token refresh error:', error);
+    res.status(500).json({ msg: 'Server error during token refresh' });
   }
 });
+
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user (invalidate token)
+ * @access  Private
+ */
+router.post('/logout', (req, res) => {
+  const authHeader = req.header('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(400).json({ msg: 'No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  addToBlacklist(token);
+  res.json({ msg: 'User logged out successfully' });
+});
+
+
+// Example endpoint
+router.put('/promote/:id', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role: req.body.role }, // 'active' or 'admin'
+      { new: true }
+    );
+    res.json({ msg: 'User role updated', user });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
 
 module.exports = router;
