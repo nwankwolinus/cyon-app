@@ -334,9 +334,7 @@ class FeedsController {
     const sections = {
       feeds: document.getElementById("feedsSection"),
       notifications: document.getElementById("notificationsSection"),
-      attendance: document.getElementById("attendanceSection"),
       dashboard: document.getElementById("dashboardSection"),
-      dues: document.getElementById("duesSection"),
       profile: document.getElementById("profileSection")
     };
 
@@ -362,15 +360,20 @@ class FeedsController {
     }
 
     if (showAttendanceBtn) {
-      showAttendanceBtn.addEventListener("click", () => showSection("attendance"));
+      showAttendanceBtn.addEventListener("click", () => {
+        window.location.href = 'attendance.html';
+      });
     }
 
     if (showDashboardBtn) {
       showDashboardBtn.addEventListener("click", () => showSection("dashboard"));
     }
 
+    // Dues button now navigates to dues.html
     if (showDuesBtn) {
-      showDuesBtn.addEventListener("click", () => showSection("dues"));
+      showDuesBtn.addEventListener("click", () => {
+        window.location.href = 'dues.html';
+      });
     }
 
     if (showProfileBtn) {
