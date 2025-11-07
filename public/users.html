@@ -417,8 +417,11 @@
         </div>
     </div>
 
+    <script src="./js/auth-service.js"></script>
+    
     <script type="module">
-        import { getBackendBaseUrl } from './utils.js';
+        // Import utilities as ES6 module
+        import { getBackendBaseUrl } from './js/utils.js';
 
         let allUsers = [];
         let currentView = 'grid';

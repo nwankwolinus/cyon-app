@@ -423,8 +423,11 @@
         </div>
     </div>
 
+    <script src="./js/auth-service.js"></script>
+    
     <script type="module">
-        import { getToken, getBackendBaseUrl } from './utils.js';
+        // Import utilities as ES6 module
+        import { getToken, getBackendBaseUrl } from './js/utils.js';
 
         // Get current user
         function getCurrentUser() {
