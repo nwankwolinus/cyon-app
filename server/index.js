@@ -48,7 +48,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files
-app.use(express.static(path.join(__dirname, "../public")));
+// ✅ Serve all static assets (CSS, JS, images, etc.)
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith(".css")) {
+      res.setHeader("Content-Type", "text/css");
+    } else if (filePath.endsWith(".js")) {
+      res.setHeader("Content-Type", "application/javascript");
+    } else if (filePath.endsWith(".json")) {
+      res.setHeader("Content-Type", "application/json");
+    }
+  }
+}));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB connection
