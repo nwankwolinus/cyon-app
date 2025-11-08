@@ -4,6 +4,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
+const upload = require('../middleware/upload');
+
 
 const router = express.Router();
 
@@ -17,12 +19,13 @@ const { addToBlacklist } = require('../utils/tokenBlacklist');
  * @access  Public
  */
 // routes/auth.js
-router.post('/register', async (req, res) => {
-  const { name, email, password, church, profilePic, gender, dob } = req.body;
+// Register with profile picture upload
+router.post('/register', upload.single('profilePic'), async (req, res) => {
+  const { name, email, password, church, gender, dob } = req.body;
 
   try {
     // Check for existing email
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.toLowerCase() });
     if (user) {
       return res.status(400).json({ msg: 'User already exists' });
     }
@@ -31,15 +34,21 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Handle profile picture
+    let profilePicUrl = '';
+    if (req.file) {
+      profilePicUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
+
     // Create user with default role 'probation'
     user = new User({
       name,
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
       church,
-      profilePic,
       gender,
-      dob
+      dob,
+      profilePic: profilePicUrl
     });
 
     await user.save();
@@ -48,7 +57,6 @@ router.post('/register', async (req, res) => {
     const payload = { id: user.id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-    // Send response
     res.status(201).json({
       msg: 'Registration successful',
       token,
@@ -63,6 +71,7 @@ router.post('/register', async (req, res) => {
         dob: user.dob
       }
     });
+
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server error', error: err.message });

@@ -4,6 +4,7 @@ const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const Notification = require("../models/Notification");
 const router = express.Router();
+const { getNotificationService } = require("../services/notificationService");
 
 // Helper function to map church enum to readable string
 const mapChurch = (churchKey) => {
@@ -17,7 +18,6 @@ const mapChurch = (churchKey) => {
 
 // Function to format feeds before sending
 const formatFeed = (feed) => {
-  // Defensive: skip if user is missing (should be filtered out, but double check)
   if (!feed.user || !feed.user._doc) {
     return null;
   }
@@ -37,35 +37,30 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
   console.log('🚀 POST /api/feeds REQUEST RECEIVED');
   
   try {
-    // 1. Safely access body properties. This prevents the "Cannot read properties of undefined" crash.
     const { text, type, originalFeedId } = req.body || {}; 
     const isReshare = type === 'reshare';
 
-    // Log request details
     console.log('📨 Request details:', {
-      user: req.user ? { id: req.user.id } : 'No user',
-      body: { text: text, type: type, originalFeedId: originalFeedId },
+      user: req.user ? { id: req.user.id, name: req.user.name } : 'No user',
+      body: { text, type, originalFeedId },
       file: req.file ? { originalname: req.file.originalname } : 'No file'
     });
 
-    // 2. Validation: Check if it's a regular post OR a reshare
+    // Validation
     if (!isReshare && !text && !req.file) {
-      console.log('❌ Validation failed: Post must contain text or an image (and is not a reshare)');
+      console.log('❌ Validation failed: Post must contain text or image');
       return res.status(400).json({ error: "Post must contain text or an image" });
     }
     
-    // --- Image Handling Logic ---
+    // Image Handling Logic
     let finalImageUrl = null;
     
-    // Scenario A: New post with image upload
     if (req.file) {
         finalImageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
         console.log('🖼️ New Image URL:', finalImageUrl);
     } 
-    
-    // Scenario B: Reshare - Inherit original image
     else if (isReshare && originalFeedId) {
-        console.log(`🔗 Reshare detected. Fetching original feed ${originalFeedId} to inherit image.`);
+        console.log(`🔗 Reshare detected. Fetching original feed ${originalFeedId}`);
         const originalFeed = await Feed.findById(originalFeedId);
         
         if (!originalFeed) {
@@ -73,26 +68,19 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
             return res.status(404).json({ error: "Original feed not found for reshare." });
         }
         
-        // 🟢 FIX: Inherit the image URL from the original post
         finalImageUrl = originalFeed.image; 
-        
-        // Ensure the reshare text has a default if the user didn't type one on the frontend
-        // Note: The frontend should send text, but this acts as a backup safeguard.
-        // We use the safely extracted 'text' or provide a default.
         req.body.text = text || `Shared post from feed ${originalFeedId}`;
     }
     
-    // --- Create Feed Data Object ---
+    // Create Feed Data Object
     const feedData = {
       user: req.user.id,
       text: req.body.text || "", 
-      image: finalImageUrl, // Use the determined image URL
+      image: finalImageUrl,
     };
     
-    // 3. Add reshare properties if it is a reshare
     if (isReshare && originalFeedId) {
         feedData.type = 'reshare'; 
-        // 🟢 CRUCIAL: Link the new post to the original post ID
         feedData.originalFeed = originalFeedId; 
     }
 
@@ -102,22 +90,53 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     await feed.save();
 
     console.log('👤 Populating user data...');
-    await feed.populate("user", "name profilePic church"); 
+    await feed.populate("user", "name profilePic church role"); 
 
-    // --- Notification (Only for new original posts) ---
-    if (!isReshare) {
-        console.log('📢 Creating notification for new post...');
-        await Notification.create({
-          user: feed.user,
-          from: req.user.id,
-          type: "post",
-          feed: feed._id,
-          text: `${req.user.name} created a new post`,
+    // 🔔 NOTIFICATION SYSTEM INTEGRATION
+    const notificationService = getNotificationService();
+    
+    if (notificationService) {
+      if (!isReshare) {
+        // Notify all users about new post
+        console.log('📢 Notifying all users about new post...');
+        await notificationService.notifyNewPost({
+          feedId: feed._id,
+          authorId: req.user.id,
+          authorName: req.user.name
         });
+
+        // Check for mentions in the post
+        if (feed.text) {
+          console.log('🏷️ Checking for @mentions in post...');
+          await notificationService.notifyMentions({
+            text: feed.text,
+            authorId: req.user.id,
+            authorName: req.user.name,
+            feedId: feed._id
+          });
+        }
+      } else {
+        // Notify original author about repost
+        const originalFeed = await Feed.findById(originalFeedId);
+        if (originalFeed && originalFeed.user.toString() !== req.user.id) {
+          console.log('🔁 Notifying original author about repost...');
+          await notificationService.notifyRepost({
+            originalAuthorId: originalFeed.user,
+            reposterId: req.user.id,
+            reposterName: req.user.name,
+            feedId: feed._id
+          });
+        }
+      }
     }
 
     const formatted = formatFeed(feed);
-    console.log('✅ Feed created:', { id: formatted._id, text: formatted.text, isReshare: isReshare, hasImage: !!formatted.image });
+    console.log('✅ Feed created:', { 
+      id: formatted._id, 
+      text: formatted.text, 
+      isReshare: isReshare, 
+      hasImage: !!formatted.image 
+    });
 
     console.log('📡 Broadcasting via Socket.IO...');
     const io = req.app.get("io");
@@ -138,7 +157,7 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 10;
     const skip = (page - 1) * limit;
 
     const feeds = await Feed.find()
@@ -148,8 +167,7 @@ router.get("/", async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    // Only keep feeds with a valid user
-    const validFeeds = feeds.filter(f => f.user && f.user._id); // <- stricter
+    const validFeeds = feeds.filter(f => f.user && f.user._id);
     res.json(validFeeds.map(formatFeed).filter(Boolean));
   } catch (err) {
     console.error("Error fetching feeds:", err);
@@ -175,36 +193,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Get feeds of the logged-in user
-router.get("/me", auth, async (req, res) => {
-  try {
-    const feeds = await Feed.find({ user: req.user.id })
-      .populate("user", "name profilePic church role")
-      .populate("comments.user", "name profilePic")
-      .sort({ createdAt: -1 });
-
-    res.json(feeds.map(formatFeed));
-  } catch (err) {
-    console.error("Error fetching user feeds:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Get posts of a specific user
-router.get("/user/:id", async (req, res) => {
-  try {
-    const feeds = await Feed.find({ user: req.params.id })
-      .populate("user", "name profilePic church role")
-      .populate("comments.user", "name profilePic")
-      .sort({ createdAt: -1 });
-
-    res.json(feeds.map(formatFeed));
-  } catch (err) {
-    console.error("Error fetching user posts:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // Like/unlike a feed
 router.post("/:id/like", auth, async (req, res) => {
   try {
@@ -220,15 +208,18 @@ router.post("/:id/like", auth, async (req, res) => {
       feed.likes.push(req.user.id);
       liked = true;
       
-      // Notify post owner (if not same person)
+      // 🔔 NOTIFY POST OWNER ABOUT LIKE
       if (feed.user.toString() !== req.user.id) {
-        await Notification.create({
-          user: feed.user,
-          from: req.user.id,
-          type: "like",
-          feed: feed._id,
-          text: `${req.user.name} liked your post`,
-        });
+        const notificationService = getNotificationService();
+        if (notificationService) {
+          console.log('❤️ Notifying post owner about like...');
+          await notificationService.notifyLike({
+            feedOwnerId: feed.user,
+            likerId: req.user.id,
+            likerName: req.user.name,
+            feedId: feed._id
+          });
+        }
       }
     }
 
@@ -256,21 +247,48 @@ router.post("/:id/comment", auth, async (req, res) => {
     const feed = await Feed.findById(req.params.id);
     if (!feed) return res.status(404).json({ error: "Feed not found" });
 
+    // Get existing commenters before adding new comment
+    const existingCommenters = feed.comments.map(c => c.user.toString());
+
     feed.comments.push({ user: req.user.id, text: text.trim() });
     await feed.save();
 
     const populatedFeed = await feed.populate("comments.user", "name profilePic");
     const newComment = populatedFeed.comments[populatedFeed.comments.length - 1];
 
-    // Send notification
-    if (feed.user.toString() !== req.user.id) {
-      await Notification.create({
-        user: feed.user,
-        from: req.user.id,
-        type: "comment",
-        feed: feed._id,
-        text: `${req.user.name} commented on your post`,
-      }).catch((err) => console.error("Notification error:", err));
+    // 🔔 NOTIFICATION SYSTEM FOR COMMENTS
+    const notificationService = getNotificationService();
+    if (notificationService) {
+      // Notify post owner
+      if (feed.user.toString() !== req.user.id) {
+        console.log('💬 Notifying post owner about comment...');
+        await notificationService.notifyComment({
+          feedOwnerId: feed.user,
+          commenterId: req.user.id,
+          commenterName: req.user.name,
+          feedId: feed._id
+        });
+      }
+
+      // Notify other commenters
+      if (existingCommenters.length > 0) {
+        console.log('👥 Notifying other commenters...');
+        await notificationService.notifyOtherCommenters({
+          feedId: feed._id,
+          commenterId: req.user.id,
+          commenterName: req.user.name,
+          existingCommenters
+        });
+      }
+
+      // Check for mentions in comment
+      console.log('🏷️ Checking for @mentions in comment...');
+      await notificationService.notifyMentions({
+        text,
+        authorId: req.user.id,
+        authorName: req.user.name,
+        feedId: feed._id
+      });
     }
 
     // Emit real-time event
@@ -397,7 +415,7 @@ router.delete("/:id/comment/:commentId", auth, async (req, res) => {
   }
 });
 
-// 🟢 PIN ROUTE TO YOUR feeds.js BACKEND FILE
+// Pin/Unpin post (admin only)
 router.patch("/:id/toggle-pin", auth, async (req, res) => {
   try {
     // Check if user is admin

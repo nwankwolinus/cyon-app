@@ -172,7 +172,7 @@ app.use("/api/users", require('./routes/users'));
 app.use('/api/feeds', require('./routes/feeds'));
 app.use("/api/notifications", require("./routes/notifications"));
 
-console.log('✅ All routes loaded');
+console.log('✅ All routes loaded (including notifications)');
 
 // ==========================================================
 // 🎯 SPA CATCH-ALL ROUTE (MUST BE LAST)

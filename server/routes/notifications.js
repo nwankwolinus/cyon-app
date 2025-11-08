@@ -9,9 +9,10 @@ const Notification = require("../models/Notification");
 router.get("/", auth, async (req, res) => {
   try {
     const notifications = await Notification.find({ user: req.user.id })
-      .populate("from", "name") // show who triggered it
-      .populate("feed", "text image") // show related feed info
-      .sort({ createdAt: -1 });
+      .populate("from", "name profilePic")
+      .populate("feed", "text image")
+      .sort({ createdAt: -1 })
+      .limit(50); // Limit to last 50 notifications
 
     res.json(notifications);
   } catch (err) {
@@ -20,16 +21,34 @@ router.get("/", auth, async (req, res) => {
 });
 
 // ---------------------------
-// 2. Mark a notification as read
+// 2. Get unread count
+// ---------------------------
+router.get("/unread-count", auth, async (req, res) => {
+  try {
+    const count = await Notification.countDocuments({ 
+      user: req.user.id, 
+      isRead: false 
+    });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------
+// 3. Mark a notification as read
 // ---------------------------
 router.put("/:id/read", auth, async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
-      { read: true },
+      { isRead: true },
       { new: true }
     );
-    if (!notification) return res.status(404).json({ msg: "Notification not found" });
+    
+    if (!notification) {
+      return res.status(404).json({ msg: "Notification not found" });
+    }
 
     res.json(notification);
   } catch (err) {
@@ -38,7 +57,42 @@ router.put("/:id/read", auth, async (req, res) => {
 });
 
 // ---------------------------
-// 3. Clear all notifications
+// 4. Mark all notifications as read
+// ---------------------------
+router.put("/mark-all-read", auth, async (req, res) => {
+  try {
+    await Notification.updateMany(
+      { user: req.user.id, isRead: false },
+      { isRead: true }
+    );
+    res.json({ msg: "All notifications marked as read" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------
+// 5. Delete a specific notification
+// ---------------------------
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    const notification = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id
+    });
+    
+    if (!notification) {
+      return res.status(404).json({ msg: "Notification not found" });
+    }
+
+    res.json({ msg: "Notification deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------
+// 6. Clear all notifications
 // ---------------------------
 router.delete("/clear", auth, async (req, res) => {
   try {

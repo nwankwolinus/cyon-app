@@ -3,65 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <title>Register - CYON</title>
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
+        /* Profile Picture Upload Styles */
+        .profile-upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 12px;
+        }
+
+        .profile-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #e5e7eb;
+            object-fit: cover;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .profile-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-preview-placeholder {
+            font-size: 48px;
+            color: #9ca3af;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-btn {
+            background: #00782c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .upload-btn:hover {
+            background: #006624;
+            transform: translateY(-2px);
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .error-message {
-            color: #ff4444;
-            font-size: 0.9em;
-            margin-top: 5px;
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 6px;
             display: none;
         }
+
+        .error-message.show {
+            display: block;
+        }
+
         .input-error {
-            border-color: #ff4444 !important;
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
         }
-        .success-message {
-            color: #00C851;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
+
         .password-strength {
-            margin-top: 5px;
-            font-size: 0.8em;
+            font-size: 13px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .strength-weak { color: #ff4444; }
-        .strength-medium { color: #ffbb33; }
-        .strength-strong { color: #00C851; }
+
+        .strength-bar-container {
+            flex: 1;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        .strength-weak { color: #ef4444; }
+        .strength-weak .strength-bar {
+            width: 33%;
+            background: #ef4444;
+        }
+
+        .strength-medium { color: #f59e0b; }
+        .strength-medium .strength-bar {
+            width: 66%;
+            background: #f59e0b;
+        }
+
+        .strength-strong { color: #10b981; }
+        .strength-strong .strength-bar {
+            width: 100%;
+            background: #10b981;
+        }
     </style>
 </head>
 <body>
     <div class="auth-container">
-        <h2>Create Account</h2>
-        <form id="registerForm">
+        <h2>Create Your Account</h2>
+        <p>Join the CYON community</p>
+        
+        <form id="registerForm" enctype="multipart/form-data">
+            <!-- Profile Picture Upload -->
+            <div class="profile-upload-container">
+                <div class="profile-preview" id="profilePreview">
+                    <i class="fas fa-user profile-preview-placeholder"></i>
+                </div>
+                <div class="upload-btn-wrapper">
+                    <button type="button" class="upload-btn">
+                        <i class="fas fa-camera"></i> Upload Photo
+                    </button>
+                    <input type="file" id="profilePic" name="profilePic" accept="image/*" />
+                </div>
+                <div class="file-name" id="fileName">No file chosen</div>
+                <div id="profilePicError" class="error-message"></div>
+            </div>
+
             <!-- Name Field -->
             <div class="input-group">
-                <input type="text" id="name" placeholder="Full Name" required />
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter your full name" required />
                 <div id="nameError" class="error-message"></div>
             </div>
 
             <!-- Email Field -->
             <div class="input-group">
-                <input type="email" id="email" placeholder="Email" required />
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your.email@example.com" required />
                 <div id="emailError" class="error-message"></div>
             </div>
 
             <!-- Password Field -->
             <div class="input-group">
-                <input type="password" id="password" placeholder="Password" required />
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a strong password" required />
                 <div id="passwordStrength" class="password-strength"></div>
                 <div id="passwordError" class="error-message"></div>
             </div>
 
             <!-- Confirm Password Field -->
             <div class="input-group">
-                <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" required />
                 <div id="confirmPasswordError" class="error-message"></div>
             </div>
 
             <!-- Gender Field -->
             <div class="input-group">
-                <select id="gender" required>
-                    <option value="" disabled selected>Select Gender</option>
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="" disabled selected>Select your gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                 </select>
@@ -70,8 +206,9 @@
 
             <!-- Church Field -->
             <div class="input-group">
-                <select id="church" required>
-                    <option value="" disabled selected>Select Church</option>
+                <label for="church">Church/Outstation</label>
+                <select id="church" name="church" required>
+                    <option value="" disabled selected>Select your church</option>
                     <option value="ss_joachim_and_anne">SS Joachim & Anne</option>
                     <option value="st_marys">St. Mary's Ijagemo</option>
                     <option value="st_brendan">St. Brendan Ifesowapo</option>
@@ -81,75 +218,141 @@
 
             <!-- Date of Birth Field -->
             <div class="input-group">
-                <label for="dob" style="text-align: left; display: block; margin-bottom: 5px; color: #666;">
-                    Date of Birth
-                </label>
-                <input type="date" id="dob" required>
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" required />
                 <div id="dobError" class="error-message"></div>
             </div>
 
-            <!-- Profile Picture Field -->
-            <div class="input-group">
-                <input type="text" id="profilePic" placeholder="Profile Picture URL (optional)">
-                <div id="profilePicError" class="error-message"></div>
-            </div>
-
-            <button type="submit" id="registerBtn">Register</button>
+            <button type="submit" id="registerBtn">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
         </form>
-        <p>Already have an account? <a href="login.html">Login</a></p>
+        
+        <div class="auth-footer">
+            <p>Already have an account? <a href="login.html">Login here</a></p>
+        </div>
+        
         <div id="registerMessage"></div>
     </div>
 
-    <!-- ✅ FIXED: Only necessary scripts, proper order -->
     <script src="js/auth-service.js"></script>
-    <script src="js/auth.js"></script>
     
     <script>
-        // Enhanced client-side validation
         document.addEventListener('DOMContentLoaded', function() {
             const registerForm = document.getElementById('registerForm');
+            const profilePicInput = document.getElementById('profilePic');
+            const profilePreview = document.getElementById('profilePreview');
+            const fileName = document.getElementById('fileName');
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const passwordStrength = document.getElementById('passwordStrength');
             const dobInput = document.getElementById('dob');
-            const profilePicInput = document.getElementById('profilePic');
+            const registerBtn = document.getElementById('registerBtn');
+            const registerMessage = document.getElementById('registerMessage');
 
-            // Set maximum date for DOB (at least 13 years old)
+            // Set date constraints (13-100 years old)
             const today = new Date();
             const minDate = new Date();
             minDate.setFullYear(today.getFullYear() - 100);
             const maxDate = new Date();
             maxDate.setFullYear(today.getFullYear() - 13);
-
             dobInput.max = maxDate.toISOString().split('T')[0];
             dobInput.min = minDate.toISOString().split('T')[0];
+
+            // Profile picture preview
+            profilePicInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        showError(profilePicInput, document.getElementById('profilePicError'), 'File size must be less than 5MB');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        showError(profilePicInput, document.getElementById('profilePicError'), 'Please select an image file');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePreview.innerHTML = `<img src="${e.target.result}" alt="Profile Preview" />`;
+                    };
+                    reader.readAsDataURL(file);
+
+                    fileName.textContent = file.name;
+                    clearError(profilePicInput, document.getElementById('profilePicError'));
+                } else {
+                    profilePreview.innerHTML = '<i class="fas fa-user profile-preview-placeholder"></i>';
+                    fileName.textContent = 'No file chosen';
+                }
+            });
 
             // Password strength indicator
             passwordInput.addEventListener('input', function() {
                 const password = this.value;
                 const strength = checkPasswordStrength(password);
-                passwordStrength.textContent = strength.text;
-                passwordStrength.className = `password-strength ${strength.class}`;
+                
+                if (password) {
+                    passwordStrength.innerHTML = `
+                        <div class="strength-bar-container">
+                            <div class="strength-bar"></div>
+                        </div>
+                        <span>${strength.text}</span>
+                    `;
+                    passwordStrength.className = `password-strength ${strength.class}`;
+                } else {
+                    passwordStrength.innerHTML = '';
+                }
             });
 
             // Confirm password validation
-            confirmPasswordInput.addEventListener('input', function() {
-                validatePasswordMatch();
-            });
+            confirmPasswordInput.addEventListener('input', validatePasswordMatch);
 
-            // Profile picture URL validation
-            profilePicInput.addEventListener('blur', function() {
-                validateProfilePicUrl(this.value);
-            });
-
-            // Form submission with enhanced validation
-            registerForm.addEventListener('submit', function(e) {
+            // Form submission
+            registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                if (validateForm()) {
-                    // Form will be submitted by auth.js
-                    const registerBtn = document.getElementById('registerBtn');
-                    registerBtn.disabled = true;
-                    registerBtn.textContent = 'Creating Account...';
+                
+                if (!validateForm()) {
+                    return;
+                }
+
+                registerBtn.disabled = true;
+                registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+                registerMessage.textContent = 'Creating your account...';
+                registerMessage.style.color = '#6b7280';
+
+                try {
+                    const formData = new FormData(registerForm);
+
+                    const response = await fetch('http://localhost:5001/api/auth/register', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.msg || 'Registration failed');
+                    }
+
+                    registerMessage.style.color = '#10b981';
+                    registerMessage.textContent = 'Registration successful! Redirecting to login...';
+                    registerBtn.innerHTML = '<i class="fas fa-check"></i> Success!';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+
+                } catch (error) {
+                    registerMessage.style.color = '#ef4444';
+                    registerMessage.textContent = error.message;
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
                 }
             });
 
@@ -161,19 +364,9 @@
                 if (password.match(/[0-9]+/)) strength++;
                 if (password.match(/[!@#$%^&*(),.?":{}|<>]+/)) strength++;
 
-                switch(strength) {
-                    case 0:
-                    case 1:
-                    case 2:
-                        return { text: 'Weak password', class: 'strength-weak' };
-                    case 3:
-                    case 4:
-                        return { text: 'Medium strength', class: 'strength-medium' };
-                    case 5:
-                        return { text: 'Strong password', class: 'strength-strong' };
-                    default:
-                        return { text: '', class: '' };
-                }
+                if (strength <= 2) return { text: 'Weak', class: 'strength-weak' };
+                if (strength <= 4) return { text: 'Medium', class: 'strength-medium' };
+                return { text: 'Strong', class: 'strength-strong' };
             }
 
             function validatePasswordMatch() {
@@ -190,43 +383,28 @@
                 }
             }
 
-            function validateProfilePicUrl(url) {
-                const errorElement = document.getElementById('profilePicError');
-                
-                if (!url.trim()) {
-                    clearError(profilePicInput, errorElement);
-                    return true;
-                }
-
-                try {
-                    new URL(url);
-                    clearError(profilePicInput, errorElement);
-                    return true;
-                } catch (e) {
-                    showError(profilePicInput, errorElement, 'Please enter a valid URL');
-                    return false;
-                }
-            }
-
             function validateForm() {
                 let isValid = true;
 
+                // Name validation
                 const name = document.getElementById('name').value.trim();
-                if (!name) {
-                    showError(document.getElementById('name'), document.getElementById('nameError'), 'Name is required');
+                if (!name || name.length < 2) {
+                    showError(document.getElementById('name'), document.getElementById('nameError'), 'Name must be at least 2 characters');
                     isValid = false;
                 } else {
                     clearError(document.getElementById('name'), document.getElementById('nameError'));
                 }
 
+                // Email validation
                 const email = document.getElementById('email').value.trim();
                 if (!email || !isValidEmail(email)) {
-                    showError(document.getElementById('email'), document.getElementById('emailError'), 'Valid email is required');
+                    showError(document.getElementById('email'), document.getElementById('emailError'), 'Please enter a valid email');
                     isValid = false;
                 } else {
                     clearError(document.getElementById('email'), document.getElementById('emailError'));
                 }
 
+                // Password validation
                 const password = passwordInput.value;
                 if (!password || password.length < 6) {
                     showError(passwordInput, document.getElementById('passwordError'), 'Password must be at least 6 characters');
@@ -235,56 +413,52 @@
                     clearError(passwordInput, document.getElementById('passwordError'));
                 }
 
+                // Confirm password
                 if (!validatePasswordMatch()) {
                     isValid = false;
                 }
 
-                const gender = document.getElementById('gender').value;
-                if (!gender) {
+                // Gender validation
+                if (!document.getElementById('gender').value) {
                     showError(document.getElementById('gender'), document.getElementById('genderError'), 'Please select your gender');
                     isValid = false;
                 } else {
                     clearError(document.getElementById('gender'), document.getElementById('genderError'));
                 }
 
-                const church = document.getElementById('church').value;
-                if (!church) {
+                // Church validation
+                if (!document.getElementById('church').value) {
                     showError(document.getElementById('church'), document.getElementById('churchError'), 'Please select your church');
                     isValid = false;
                 } else {
                     clearError(document.getElementById('church'), document.getElementById('churchError'));
                 }
 
-                const dob = dobInput.value;
-                if (!dob) {
-                    showError(dobInput, document.getElementById('dobError'), 'Date of birth is required');
+                // DOB validation
+                if (!dobInput.value) {
+                    showError(dobInput, document.getElementById('dobError'), 'Please enter your date of birth');
                     isValid = false;
                 } else {
                     clearError(dobInput, document.getElementById('dobError'));
-                }
-
-                if (!validateProfilePicUrl(profilePicInput.value)) {
-                    isValid = false;
                 }
 
                 return isValid;
             }
 
             function isValidEmail(email) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return emailRegex.test(email);
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
             }
 
             function showError(input, errorElement, message) {
                 input.classList.add('input-error');
                 errorElement.textContent = message;
-                errorElement.style.display = 'block';
+                errorElement.classList.add('show');
             }
 
             function clearError(input, errorElement) {
                 input.classList.remove('input-error');
                 errorElement.textContent = '';
-                errorElement.style.display = 'none';
+                errorElement.classList.remove('show');
             }
         });
     </script>
