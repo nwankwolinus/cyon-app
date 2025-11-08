@@ -5,15 +5,8 @@
  * @returns {string} Backend base URL
  */
 function getBackendBaseUrl() {
-  const hostname = window.location.hostname;
-  const port = 5001;
-
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return 'https://cyon-app.onrender.com';
-  }
-  
-  // For production/other environments
-  return `${window.location.protocol}//${hostname}:${port}`;
+  // Always use the deployed backend URL
+  return 'https://cyon-app.onrender.com';
 }
 
 /**
@@ -81,7 +74,7 @@ function redirectToLogin() {
   sessionStorage.clear();
   
   // Redirect
-  window.location.href = './welcome.html';
+  window.location.href = './index.html';
 }
 
 /**
