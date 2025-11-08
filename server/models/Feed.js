@@ -1,53 +1,46 @@
+// models/Feed.js
 const mongoose = require("mongoose");
 
-// CommentSchema sub-schema
+// Comment Schema (nested)
 const commentSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     text: { type: String, required: true },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
   },
   { timestamps: true }
 );
 
+// Feed Schema
 const feedSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     text: { type: String },
-    image: { type: String }, 
+    image: { type: String },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [commentSchema],
     
-    // 🟢 NEW FIELD 1: To distinguish between 'post' and 'reshare'
-    type: { 
-      type: String, 
-      enum: ['post', 'reshare'], // Restricts values to these two options
-      default: 'post'           // Default is a regular post
+    // Repost/Reshare fields (use ONE set of naming)
+    isRepost: { type: Boolean, default: false },
+    originalFeed: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "Feed",
+      default: null 
     },
     
-    // 🟢 NEW FIELD 2: To store the ID of the original post being reshared
-    originalFeed: {
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: "Feed", 
-      required: false           // Only required if type is 'reshare'
-    },
-
     // Target user for profile shares
-    targetUser: {
-      type: String, // Store username or user ID
-      required: false
-    },
-
-    // 🟢 ADD PIN FIELDS HERE
-    isPinned: {
-      type: Boolean,
-      default: false
-    },
-    pinnedAt: {
-      type: Date,
-      default: null
-    }
+    targetUser: { type: String, default: null },
+    
+    // Pin fields
+    isPinned: { type: Boolean, default: false },
+    pinnedAt: { type: Date, default: null }
   },
   { timestamps: true }
 );
+
+// Indexes for better query performance
+feedSchema.index({ user: 1, createdAt: -1 });
+feedSchema.index({ isPinned: 1, pinnedAt: -1 });
+feedSchema.index({ originalFeed: 1 });
 
 module.exports = mongoose.model("Feed", feedSchema);
