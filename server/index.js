@@ -10,8 +10,10 @@ require("dotenv").config({ path: __dirname + "/.env" });
 
 const app = express();
 
-// --- CORS Configuration ---
+// --- FIXED CORS Configuration ---
 const allowedOrigins = [
+  'https://cyon-app-1.onrender.com', // Your deployed frontend
+  'https://cyon-app.onrender.com',   // Your deployed backend
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://localhost:5000',
@@ -26,7 +28,9 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
     if (!origin) return callback(null, true);
+    
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -74,18 +78,10 @@ mongoose.connect(uri, mongooseOptions)
     // Create the HTTP server
     const server = http.createServer(app);
 
-    // Socket.IO configuration
+    // Socket.IO configuration - FIXED CORS
     const io = new Server(server, {
       cors: {
-        origin: function (origin, callback) {
-          if (!origin) return callback(null, true);
-          if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-          } else {
-            console.log('🚫 Socket.IO CORS blocked origin:', origin);
-            callback(new Error('Not allowed by CORS'));
-          }
-        },
+        origin: allowedOrigins, // Use the same allowed origins
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
         credentials: true
       },
@@ -116,7 +112,7 @@ mongoose.connect(uri, mongooseOptions)
     const PORT = process.env.PORT || 5001;
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🌐 CORS enabled for file uploads with 60s timeout`);
+      console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
     });
 
     // MongoDB event listeners
@@ -178,10 +174,11 @@ console.log('✅ All routes loaded (including notifications)');
 // 🎯 SPA CATCH-ALL ROUTE (MUST BE LAST)
 // ==========================================================
 
-// Serve feeds.html for the root route
+// Serve index.html for the root route (since you renamed welcome.html to index.html)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/welcome.html"));
+  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
+
 // ==========================================================
 // 🎯 ERROR HANDLING MIDDLEWARE (MUST BE VERY LAST)
 // ==========================================================
