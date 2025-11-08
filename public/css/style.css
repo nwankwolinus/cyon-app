@@ -165,7 +165,508 @@ body {
 .nav-links a {
   background: transparent;
   border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-full);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.submit-comment:hover {
+  background: var(--brand-primary-dark);
+}
+
+/* Loading & Empty States */
+.loading-message {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.5;
+}
+
+/* === UTILITIES === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mention Tags */
+.mention-tag {
+  color: var(--brand-primary);
+  background: rgba(0, 120, 44, 0.1);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.mention-tag:hover {
+  background: rgba(0, 120, 44, 0.2);
+}
+
+/* Content Sections */
+.content-section {
+  display: none;
+}
+
+.content-section.active {
+  display: block;
+  animation: fadeIn var(--transition-slow);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* === MOBILE (768px and below) === */
+@media (max-width: 768px) {
+  /* Show mobile bottom nav */
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  /* Hide logout button on mobile */
+  #logoutBtn {
+    display: none !important;
+  }
+
+  /* Hide desktop nav links */
+  .nav-links {
+    display: none !important;
+  }
+
+  /* Show hamburger */
+  .hamburger {
+    display: flex;
+  }
+
+  /* Navbar adjustments */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+  }
+
+  .logo-section {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .logo {
+    gap: 8px;
+  }
+
+  .logo img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-text {
+    font-size: 12px;
+  }
+
+  .org-name {
+    font-size: 13px;
+  }
+
+  .church-name {
+    font-size: 11px;
+  }
+
+  /* Notification bell mobile */
+  .notification-bell {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .notification-bell i {
+    font-size: 18px;
+  }
+
+  .notification-bell-badge {
+    top: 0;
+    right: 0;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  /* Main content mobile */
+  #mainContent {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 70px;
+  }
+
+  /* Post form mobile */
+  #createPostSection {
+    border-radius: 0;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: none;
+    border-right: none;
+  }
+
+  .desktop-post-form {
+    display: none !important;
+  }
+
+  .mobile-post-form {
+    display: block !important;
+  }
+
+  .post-form-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+  }
+
+  #mobilePostText {
+    flex: 1;
+    border: none;
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    padding: 10px 14px;
+    font-size: 14px;
+    min-height: 40px;
+    max-height: 120px;
+    resize: none;
+    font-family: inherit;
+    line-height: 1.4;
+  }
+
+  #mobilePostText:focus {
+    outline: none;
+    background: var(--bg-tertiary);
+  }
+
+  #mobilePostText::placeholder {
+    color: var(--text-muted);
+  }
+
+  .mobile-post-form button[type="submit"] {
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    min-width: 60px;
+  }
+
+  .mobile-post-form button[type="submit"]:hover {
+    background: var(--brand-primary-dark);
+  }
+
+  .mobile-post-form button[type="submit"]:disabled {
+    background: var(--color-gray-300);
+    cursor: not-allowed;
+  }
+
+  /* Feed items mobile */
+  .feed-item {
+    border-radius: 0;
+    margin-bottom: 8px;
+    border-left: none;
+    border-right: none;
+  }
+
+  .feed-card {
+    padding: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .username {
+    font-size: 14px;
+  }
+
+  .churchAttend,
+  .timestamp {
+    font-size: 12px;
+  }
+
+  .feed-text {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .feed-image {
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .feed-actions {
+    padding: 4px 0;
+  }
+
+  .feed-actions button {
+    font-size: 13px;
+    padding: 8px 4px;
+  }
+
+  .comments-section {
+    padding: 12px;
+    margin: 0 -12px -12px;
+  }
+
+  .comment {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Mobile menu */
+  .mobile-menu {
+    top: 57px;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* === EXTRA SMALL DEVICES (360px and below) === */
+@media (max-width: 360px) {
+  .logo-text {
+    display: none;
+  }
+
+  .logo img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .notification-bell {
+    width: 32px;
+    height: 32px;
+  }
+
+  .post-form-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  #mobilePostText {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .mobile-action-btn {
+    padding: 4px 6px;
+  }
+
+  .mobile-action-btn .btn-label {
+    display: none;
+  }
+
+  .mobile-bottom-nav button i {
+    font-size: 22px;
+  }
+}
+
+/* === LANDSCAPE MODE === */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-bottom-nav {
+    padding: 4px 0;
+  }
+
+  .mobile-bottom-nav button {
+    padding: 6px 4px;
+  }
+
+  .mobile-bottom-nav button i {
+    font-size: 20px;
+  }
+
+  #mainContent {
+    padding-bottom: 60px;
+  }
+
+  .mobile-menu {
+    max-height: calc(100vh - 57px);
+  }
+}
+
+/* === TABLET (769px - 1024px) === */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #mainContent {
+    max-width: 640px;
+  }
+
+  .desktop-post-form {
+    display: block !important;
+  }
+
+  .mobile-post-form {
+    display: none !important;
+  }
+
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+
+  #logoutBtn {
+    display: inline-flex !important;
+  }
+
+  .nav-links {
+    display: flex !important;
+  }
+
+  .logo-section {
+    padding: 12px 20px;
+  }
+
+  .nav-links button,
+  .nav-links a {
+    font-size: 18px;
+    padding: 8px 12px;
+  }
+}
+
+/* === SAFE AREA INSETS FOR NOTCHED DEVICES === */
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    .navbar {
+      padding-top: max(0px, env(safe-area-inset-top));
+    }
+
+    .mobile-bottom-nav {
+      padding-bottom: max(6px, env(safe-area-inset-bottom));
+    }
+
+    #mainContent {
+      padding-bottom: max(70px, calc(70px + env(safe-area-inset-bottom)));
+    }
+  }
+}
+
+/* === ACCESSIBILITY & PERFORMANCE === */
+
+/* Remove tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove default appearance */
+input,
+textarea,
+button,
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Smooth scrolling for Safari */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .feed-item,
+  .comment {
+    border: 2px solid var(--text-primary);
+  }
+
+  button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Print styles */
+@media print {
+  .navbar,
+  .mobile-bottom-nav,
+  .hamburger,
+  #logoutBtn,
+  .feed-actions,
+  .comment-form,
+  #createPostSection {
+    display: none !important;
+  }
+
+  .feed-item {
+    page-break-inside: avoid;
+    border: 1px solid #000;
+  }
+}md);
   border-radius: var(--border-radius-md);
   cursor: pointer;
   color: var(--text-secondary);
