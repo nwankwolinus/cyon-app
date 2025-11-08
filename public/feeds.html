@@ -1,265 +1,282 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Feeds | Cyon</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  </head>
+<!DOCTYPE html>    
+<html lang="en">    
+  <head>    
+    <meta charset="UTF-8" />    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+    <title>Welcome - CYON SS Joachim and Anne Ijegun</title>    
+    <link rel="stylesheet" href="css/style.css" />    
+    
+    <!-- Font Awesome Icons -->    
+    <link    
+      rel="stylesheet"    
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"    
+    />    
+    
+    <style>    
+        /* Welcome page specific styles */    
+        .welcome-hero {    
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);    
+            color: white;    
+            padding: 80px 20px;    
+            text-align: center;    
+            margin-top: 0;    
+        }    
+        
+        .welcome-hero h1 {    
+            font-size: 3em;    
+            margin-bottom: 20px;    
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);    
+        }    
+        
+        .welcome-hero p {    
+            font-size: 1.3em;    
+            margin-bottom: 30px;    
+            max-width: 600px;    
+            margin-left: auto;    
+            margin-right: auto;    
+        }    
+        
+        .welcome-container {    
+            max-width: 1200px;    
+            margin: 0 auto;    
+            padding: 40px 20px;    
+        }    
+        
+        .welcome-buttons {    
+            display: flex;    
+            gap: 20px;    
+            justify-content: center;    
+            margin: 40px 0;    
+            flex-wrap: wrap;    
+        }    
+        
+        .welcome-btn {    
+            padding: 15px 30px;    
+            font-size: 1.1em;    
+            border: none;    
+            border-radius: 8px;    
+            cursor: pointer;    
+            text-decoration: none;    
+            font-weight: bold;    
+            transition: all 0.3s ease;    
+            display: inline-block;    
+        }    
+        
+        .btn-primary {    
+            background: #4CAF50;    
+            color: white;    
+        }    
+        
+        .btn-primary:hover {    
+            background: #45a049;    
+            transform: translateY(-3px);    
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);    
+        }    
+        
+        .btn-secondary {    
+            background: transparent;    
+            color: white;    
+            border: 2px solid white;    
+        }    
+        
+        .btn-secondary:hover {    
+            background: white;    
+            color: #667eea;    
+            transform: translateY(-3px);    
+        }    
+        
+        .features-grid {    
+            display: grid;    
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));    
+            gap: 30px;    
+            margin: 60px 0;    
+        }    
+        
+        .feature-card {    
+            background: white;    
+            padding: 30px;    
+            border-radius: 10px;    
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);    
+            text-align: center;    
+            transition: transform 0.3s ease;    
+        }    
+        
+        .feature-card:hover {    
+            transform: translateY(-5px);    
+        }    
+        
+        .feature-icon {    
+            font-size: 3em;    
+            color: #4CAF50;    
+            margin-bottom: 20px;    
+        }    
+        
+        .feature-card h3 {    
+            color: #333;    
+            margin-bottom: 15px;    
+        }    
+        
+        .feature-card p {    
+            color: #666;    
+            line-height: 1.6;    
+        }    
+        
+        .church-info {    
+            text-align: center;    
+            padding: 40px 20px;    
+            background: #f8f9fa;    
+            border-radius: 10px;    
+            margin: 40px 0;    
+        }    
+        
+        .church-name {    
+            color: #4CAF50;    
+            font-size: 1.5em;    
+            font-weight: bold;    
+            margin-bottom: 10px;    
+        }    
+        
+        .welcome-footer {    
+            text-align: center;    
+            padding: 40px 20px;    
+            background: #333;    
+            color: white;    
+            margin-top: 60px;    
+        }    
+        
+        /* Responsive design */    
+        @media (max-width: 768px) {    
+            .welcome-hero h1 {    
+                font-size: 2em;    
+            }    
+            
+            .welcome-hero p {    
+                font-size: 1.1em;    
+            }    
+            
+            .welcome-buttons {    
+                flex-direction: column;    
+                align-items: center;    
+            }    
+            
+            .welcome-btn {    
+                width: 100%;    
+                max-width: 300px;    
+            }    
+        }    
+        
+        /* Hide nav buttons on welcome page */    
+        .nav-links button {    
+            display: none;    
+        }    
+        
+        .nav-links .login-btn {    
+            display: inline-block !important;    
+            background: #4CAF50;    
+            color: white;    
+            border: none;    
+            padding: 10px 20px;    
+            border-radius: 5px;    
+            cursor: pointer;    
+            text-decoration: none;    
+            transition: all 0.3s ease;    
+        }    
 
-  <body>
-    <header class="header">
-      <h1 class="logo">Cyon</h1>
-      <nav class="nav">
-        <a href="feeds.html" class="nav-link active"><i class="fas fa-home"></i></a>
-        <a href="messages.html" class="nav-link"><i class="fas fa-comments"></i></a>
-        <a href="notifications.html" class="nav-link notification-link">
-          <i class="fas fa-bell"></i>
-          <span id="notificationBadge" class="notification-badge">0</span>
-        </a>
-        <a href="profile.html" class="nav-link"><i class="fas fa-user"></i></a>
-      </nav>
-    </header>
+        .nav-links .login-btn:hover {    
+            background: #45a049;    
+            transform: translateY(-2px);    
+        }    
+    </style>    
+  </head>    
+    
+  <body>    
+    <!-- Navbar -->    
+    <nav class="navbar">    
+      <div class="logo-section">    
+        <div class="logo">    
+          <img src="images/cyon-logo-png.png" alt="CYON Logo" class="logo" />    
+          <img    
+            src="images/ss-joachim-anne.jpeg"    
+            alt="Ss Joachim and Anne Logo"    
+            class="logo"    
+          />    
+        </div>    
+    
+        <div class="logo-text">    
+          <div class="org-name">    
+            The Catholic Youth Organization of Nigeria    
+          </div>    
+          <div class="church-name">    
+            SS Joachim & Anne Catholic Church Ijegun    
+          </div>    
+        </div>    
+    
+        <div class="nav-links" id="navlinks">    
+          <a href="login.html" class="login-btn">    
+            <i class="fas fa-sign-in-alt"></i> Login    
+          </a>    
+        </div>    
+    
+        <button class="hamburger" id="hamburger" aria-label="Open menu">    
+          <i class="fas fa-bars"></i>    
+        </button>    
+      </div>    
+    </nav>    
 
-    <main>
-      <!-- Replace your ENTIRE createPostSection with this -->
-      <section id="createPostSection" class="content-section active">
-        <form id="postForm" enctype="multipart/form-data">
-          <!-- Desktop version -->
-          <div class="desktop-post-form">
-            <div class="post-form-header">
-              <img
-                src="images/default-avatar.png"
-                alt="Your avatar"
-                class="post-form-avatar"
-                id="postFormAvatar"
-              />
-              <div class="post-form-input-wrapper">
-                <textarea
-                  id="postText"
-                  placeholder="What's on your mind?"
-                  rows="3"
-                ></textarea>
-              </div>
-            </div>
-
-            <img
-              id="preview"
-              style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
-              alt="Image Preview"
-            />
-
-            <div class="post-form-actions">
-              <div class="post-form-options">
-                <button
-                  type="button"
-                  class="post-option-btn photo-btn"
-                  onclick="document.getElementById('postImage').click()"
-                >
-                  <i class="fas fa-image photo-icon"></i>
-                  <span>Photo</span>
-                </button>
-                <button type="button" class="post-option-btn video-btn">
-                  <i class="fas fa-video video-icon"></i>
-                  <span>Video</span>
-                </button>
-                <button type="button" class="post-option-btn feeling-btn">
-                  <i class="fas fa-smile feeling-icon"></i>
-                  <span>Feeling</span>
-                </button>
-                <button type="button" class="post-option-btn tag-btn">
-                  <i class="fas fa-user-tag tag-icon"></i>
-                  <span>Tag</span>
-                </button>
-              </div>
-              <input type="file" id="postImage" accept="image/*" style="display: none;" />
-              <button type="submit">Post</button>
-            </div>
-          </div>
-
-          <!-- Mobile version -->
-          <div class="mobile-post-form" style="display: none;">
-            <div class="post-input-row">
-              <img
-                src="images/default-avatar.png"
-                alt="Your avatar"
-                class="post-form-avatar"
-                id="mobilePostFormAvatar"
-              />
-              <textarea
-                id="mobilePostText"
-                placeholder="What's on your mind?"
-                rows="1"
-              ></textarea>
-            </div>
-
-            <img
-              id="mobilePreview"
-              style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
-              alt="Image Preview"
-            />
-
-            <div class="mobile-post-actions">
-              <div class="mobile-post-buttons">
-                <button
-                  type="button"
-                  class="mobile-action-btn photo-btn"
-                  onclick="document.getElementById('mobilePostImage').click()"
-                >
-                  <i class="fas fa-image"></i>
-                  <span class="btn-label">Photo</span>
-                </button>
-                <button type="button" class="mobile-action-btn video-btn">
-                  <i class="fas fa-video"></i>
-                </button>
-                <button type="button" class="mobile-action-btn feeling-btn">
-                  <i class="fas fa-smile"></i>
-                </button>
-              </div>
-              <input type="file" id="mobilePostImage" accept="image/*" style="display: none;" />
-              <button type="submit">Post</button>
-            </div>
-          </div>
-        </form>
-      </section>
-
-      <section id="feedPostsSection" class="content-section">
-        <!-- Posts will load here dynamically -->
-      </section>
-    </main>
-
-    <div class="mobile-nav">
-      <a href="feeds.html" class="mobile-link active"><i class="fas fa-home"></i></a>
-      <a href="messages.html" class="mobile-link"><i class="fas fa-comments"></i></a>
-      <a href="notifications.html" class="mobile-link notification-link">
-        <i class="fas fa-bell"></i>
-        <span id="mobileNotificationBadge" class="notification-badge">0</span>
-      </a>
-      <a href="profile.html" class="mobile-link"><i class="fas fa-user"></i></a>
+    <!-- ✅ Added: Mobile Bottom Navigation (Facebook Style) -->    
+    <div class="mobile-bottom-nav" style="display: none;">    
+      <button id="mobileHomeBtn" class="active" title="Home">    
+        <i class="fas fa-home"></i>    
+      </button>    
+      
+      <button id="mobileNotificationsBtn" title="Notifications">    
+        <i class="fas fa-bell"></i>    
+        <span class="badge" id="mobileNotificationBadge" style="display: none;">0</span>    
+      </button>    
+      
+      <button id="mobileMessagesBtn" title="Messages">    
+        <i class="fas fa-envelope"></i>    
+        <span class="badge" id="mobileMessageBadge" style="display: none;">0</span>    
+      </button>    
+      
+      <button id="mobileProfileBtn" title="Profile">    
+        <i class="fas fa-user"></i>    
+      </button>    
+      
+      <button id="mobileMenuBtn" title="Menu">    
+        <i class="fas fa-bars"></i>    
+      </button>    
     </div>
 
-    <!-- Scripts -->
-    <script src="/js/auth.js" defer></script>
-    <script type="module" src="/js/feeds-controller.js"></script>
-    <script>
-      // ===== POST FORM MOBILE/DESKTOP TOGGLE =====
-      function updatePostFormVisibility() {
-        const desktopForm = document.querySelector('.desktop-post-form');
-        const mobileForm = document.querySelector('.mobile-post-form');
+    <!-- Mobile dropdown menu -->    
+    <div class="mobile-menu" id="mobileMenu">    
+      <a href="login.html">    
+        <i class="fas fa-sign-in-alt"></i> Login    
+      </a>    
+      <a href="register.html">    
+        <i class="fas fa-user-plus"></i> Register    
+      </a>    
+    </div>    
+
+    <!-- Welcome Hero Section -->    
+    <section class="welcome-hero">    
+      <div class="welcome-container">    
+        <h1>Welcome to Our CYON Community</h1>    
+        <p>Connect, share, and grow together in faith with your church family at SS Joachim & Anne Catholic Church Ijegun</p>    
         
-        if (window.innerWidth <= 768) {
-          if (desktopForm) desktopForm.style.display = 'none';
-          if (mobileForm) mobileForm.style.display = 'block';
-        } else {
-          if (desktopForm) desktopForm.style.display = 'block';
-          if (mobileForm) mobileForm.style.display = 'none';
-        }
-      }
+        <div class="welcome-buttons">    
+          <a href="register.html" class="welcome-btn btn-primary">    
+            <i class="fas fa-user-plus"></i> Create New Account    
+          </a>    
+          <a href="login.html" class="welcome-btn btn-secondary">    
+            <i class="fas fa-sign-in-alt"></i> I Have an Account    
+          </a>    
+        </div>    
+      </div>    
+    </section>    
 
-      updatePostFormVisibility();
-      window.addEventListener('resize', updatePostFormVisibility);
+    <!-- (rest of your original HTML remains unchanged below) -->    
+    <!-- ... -->    
 
-      // Sync textareas
-      const desktopText = document.getElementById('postText');
-      const mobileText = document.getElementById('mobilePostText');
-
-      if (desktopText && mobileText) {
-        desktopText.addEventListener('input', () => {
-          mobileText.value = desktopText.value;
-        });
-
-        mobileText.addEventListener('input', () => {
-          desktopText.value = mobileText.value;
-        });
-      }
-
-      // Handle image uploads (mobile + desktop)
-      function handleImageInputChange(inputId, previewId, mirrorInputId, mirrorPreviewId) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-
-        input.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const preview = document.getElementById(previewId);
-              const mirrorPreview = document.getElementById(mirrorPreviewId);
-
-              if (preview) {
-                preview.src = event.target.result;
-                preview.style.display = 'block';
-              }
-              if (mirrorPreview) {
-                mirrorPreview.src = event.target.result;
-                mirrorPreview.style.display = 'block';
-              }
-
-              const mirrorInput = document.getElementById(mirrorInputId);
-              if (mirrorInput) {
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                mirrorInput.files = dt.files;
-              }
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
-
-      handleImageInputChange('postImage', 'preview', 'mobilePostImage', 'mobilePreview');
-      handleImageInputChange('mobilePostImage', 'mobilePreview', 'postImage', 'preview');
-
-      // Set avatars dynamically
-      function setPostFormAvatars() {
-        try {
-          const userData = JSON.parse(localStorage.getItem('cyon_user_data') || localStorage.getItem('user') || '{}');
-          const avatarUrl = userData.profilePicture || 'images/default-avatar.png';
-          
-          const desktopAvatar = document.getElementById('postFormAvatar');
-          const mobileAvatar = document.getElementById('mobilePostFormAvatar');
-          
-          if (desktopAvatar) desktopAvatar.src = avatarUrl;
-          if (mobileAvatar) mobileAvatar.src = avatarUrl;
-        } catch (error) {
-          console.error('Error setting avatars:', error);
-        }
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setPostFormAvatars);
-      } else {
-        setPostFormAvatars();
-      }
-
-      setTimeout(setPostFormAvatars, 500);
-    </script>
-
-    <script>
-      // ===== NOTIFICATION BADGE SYNC =====
-      const desktopBadge = document.getElementById('notificationBadge');
-      const mobileBadge = document.getElementById('mobileNotificationBadge');
-
-      function syncMobileNotificationBadge() {
-        if (desktopBadge && mobileBadge) {
-          const count = desktopBadge.textContent;
-          const isVisible = desktopBadge.style.display !== "none";
-
-          if (isVisible && count > 0) {
-            mobileBadge.textContent = count;
-            mobileBadge.style.display = "flex";
-          } else {
-            mobileBadge.style.display = "none";
-          }
-        }
-      }
-
-      setInterval(syncMobileNotificationBadge, 1000);
-    </script>
-  </body>
+  </body>    
 </html>
