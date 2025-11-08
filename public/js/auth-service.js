@@ -1,16 +1,14 @@
-// auth-service.js - Professional authentication service (FIXED VERSION)
+// auth-service.js - Professional authentication service (FIXED FOR DEPLOYMENT)
 class AuthService {
   constructor() {
-    this.backendBaseUrl = this.getBackendBaseUrl();
+    this.backendBaseUrl = 'https://cyon-app.onrender.com';
     this.tokenKey = "cyon_auth_token";
     this.userKey = "cyon_user_data";
   }
 
   getBackendBaseUrl() {
-    const hostname = window.location.hostname;
-    return hostname === "localhost" || hostname === "127.0.0.1"
-      ? 'https://cyon-app.onrender.com'
-      : `${window.location.protocol}//${window.location.hostname}:5001`;
+    // Always use the deployed backend URL
+    return 'https://cyon-app.onrender.com';
   }
 
   // ===== TOKEN MANAGEMENT =====
@@ -138,7 +136,7 @@ class AuthService {
       console.warn("Logout API call failed:", error);
     } finally {
       this.clearAuth();
-      window.location.href = "welcome.html?logout=success";
+      window.location.href = "index.html?logout=success";
     }
   }
 
@@ -227,7 +225,7 @@ class AuthService {
           console.warn("❌ Token refresh failed, redirecting to login...");
           this.clearAuth();
           if (window.location.pathname.includes("feeds.html")) {
-            window.location.href = "welcome.html";
+            window.location.href = "index.html";
           }
           return null;
         }
@@ -372,7 +370,7 @@ class AuthService {
   }
 }
 
-// ✅ FIX: Create singleton instance and expose globally WITHOUT calling it as a function
+// ✅ Create singleton instance and expose globally
 const authService = new AuthService();
 window.authService = authService;
 
