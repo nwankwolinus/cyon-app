@@ -1,211 +1,268 @@
-<!-- Replace your ENTIRE createPostSection with this -->
-<section id="createPostSection" class="content-section active">
-  <form id="postForm" enctype="multipart/form-data">
-    <!-- Desktop version -->
-    <div class="desktop-post-form">
-      <div class="post-form-header">
-        <img src="images/default-avatar.png" alt="Your avatar" class="post-form-avatar" id="postFormAvatar">
-        <div class="post-form-input-wrapper">
-          <textarea
-            id="postText"
-            placeholder="What's on your mind?"
-            rows="3"
-          ></textarea>
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feeds | Cyon</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="feeds.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  </head>
 
-      <img
-        id="preview"
-        style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
-        alt="Image Preview"
-      />
+  <body>
+    <header class="header">
+      <h1 class="logo">Cyon</h1>
+      <nav class="nav">
+        <a href="feeds.html" class="nav-link active"><i class="fas fa-home"></i></a>
+        <a href="messages.html" class="nav-link"><i class="fas fa-comments"></i></a>
+        <a href="notifications.html" class="nav-link notification-link">
+          <i class="fas fa-bell"></i>
+          <span id="notificationBadge" class="notification-badge">0</span>
+        </a>
+        <a href="profile.html" class="nav-link"><i class="fas fa-user"></i></a>
+      </nav>
+    </header>
 
-      <div class="post-form-actions">
-        <div class="post-form-options">
-          <button type="button" class="post-option-btn photo-btn" onclick="document.getElementById('postImage').click()">
-            <i class="fas fa-image photo-icon"></i>
-            <span>Photo</span>
-          </button>
-          <button type="button" class="post-option-btn video-btn">
-            <i class="fas fa-video video-icon"></i>
-            <span>Video</span>
-          </button>
-          <button type="button" class="post-option-btn feeling-btn">
-            <i class="fas fa-smile feeling-icon"></i>
-            <span>Feeling</span>
-          </button>
-          <button type="button" class="post-option-btn tag-btn">
-            <i class="fas fa-user-tag tag-icon"></i>
-            <span>Tag</span>
-          </button>
-        </div>
-        <input type="file" id="postImage" accept="image/*" style="display: none;" />
-        <button type="submit">Post</button>
-      </div>
+    <main>
+      <!-- Replace your ENTIRE createPostSection with this -->
+      <section id="createPostSection" class="content-section active">
+        <form id="postForm" enctype="multipart/form-data">
+          <!-- Desktop version -->
+          <div class="desktop-post-form">
+            <div class="post-form-header">
+              <img
+                src="images/default-avatar.png"
+                alt="Your avatar"
+                class="post-form-avatar"
+                id="postFormAvatar"
+              />
+              <div class="post-form-input-wrapper">
+                <textarea
+                  id="postText"
+                  placeholder="What's on your mind?"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+
+            <img
+              id="preview"
+              style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
+              alt="Image Preview"
+            />
+
+            <div class="post-form-actions">
+              <div class="post-form-options">
+                <button
+                  type="button"
+                  class="post-option-btn photo-btn"
+                  onclick="document.getElementById('postImage').click()"
+                >
+                  <i class="fas fa-image photo-icon"></i>
+                  <span>Photo</span>
+                </button>
+                <button type="button" class="post-option-btn video-btn">
+                  <i class="fas fa-video video-icon"></i>
+                  <span>Video</span>
+                </button>
+                <button type="button" class="post-option-btn feeling-btn">
+                  <i class="fas fa-smile feeling-icon"></i>
+                  <span>Feeling</span>
+                </button>
+                <button type="button" class="post-option-btn tag-btn">
+                  <i class="fas fa-user-tag tag-icon"></i>
+                  <span>Tag</span>
+                </button>
+              </div>
+              <input type="file" id="postImage" accept="image/*" style="display: none;" />
+              <button type="submit">Post</button>
+            </div>
+          </div>
+
+          <!-- Mobile version -->
+          <div class="mobile-post-form" style="display: none;">
+            <div class="post-input-row">
+              <img
+                src="images/default-avatar.png"
+                alt="Your avatar"
+                class="post-form-avatar"
+                id="mobilePostFormAvatar"
+              />
+              <textarea
+                id="mobilePostText"
+                placeholder="What's on your mind?"
+                rows="1"
+              ></textarea>
+            </div>
+
+            <img
+              id="mobilePreview"
+              style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
+              alt="Image Preview"
+            />
+
+            <div class="mobile-post-actions">
+              <div class="mobile-post-buttons">
+                <button
+                  type="button"
+                  class="mobile-action-btn photo-btn"
+                  onclick="document.getElementById('mobilePostImage').click()"
+                >
+                  <i class="fas fa-image"></i>
+                  <span class="btn-label">Photo</span>
+                </button>
+                <button type="button" class="mobile-action-btn video-btn">
+                  <i class="fas fa-video"></i>
+                </button>
+                <button type="button" class="mobile-action-btn feeling-btn">
+                  <i class="fas fa-smile"></i>
+                </button>
+              </div>
+              <input type="file" id="mobilePostImage" accept="image/*" style="display: none;" />
+              <button type="submit">Post</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="feedPostsSection" class="content-section">
+        <!-- Posts will load here dynamically -->
+      </section>
+    </main>
+
+    <div class="mobile-nav">
+      <a href="feeds.html" class="mobile-link active"><i class="fas fa-home"></i></a>
+      <a href="messages.html" class="mobile-link"><i class="fas fa-comments"></i></a>
+      <a href="notifications.html" class="mobile-link notification-link">
+        <i class="fas fa-bell"></i>
+        <span id="mobileNotificationBadge" class="notification-badge">0</span>
+      </a>
+      <a href="profile.html" class="mobile-link"><i class="fas fa-user"></i></a>
     </div>
 
-    <!-- Mobile version -->
-    <div class="mobile-post-form" style="display: none;">
-      <div class="post-input-row">
-        <img src="images/default-avatar.png" alt="Your avatar" class="post-form-avatar" id="mobilePostFormAvatar">
-        <textarea
-          id="mobilePostText"
-          placeholder="What's on your mind?"
-          rows="1"
-        ></textarea>
-      </div>
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/feed.js"></script>
+    <script src="js/notifications.js"></script>
 
-      <img
-        id="mobilePreview"
-        style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
-        alt="Image Preview"
-      />
-
-      <div class="mobile-post-actions">
-        <div class="mobile-post-buttons">
-          <button type="button" class="mobile-action-btn photo-btn" onclick="document.getElementById('mobilePostImage').click()">
-            <i class="fas fa-image"></i>
-            <span class="btn-label">Photo</span>
-          </button>
-          <button type="button" class="mobile-action-btn video-btn">
-            <i class="fas fa-video"></i>
-          </button>
-          <button type="button" class="mobile-action-btn feeling-btn">
-            <i class="fas fa-smile"></i>
-          </button>
-        </div>
-        <input type="file" id="mobilePostImage" accept="image/*" style="display: none;" />
-        <button type="submit">Post</button>
-      </div>
-    </div>
-  </form>
-</section>
-
-<!-- Add this script RIGHT BEFORE the closing </body> tag (at the very end) -->
-<script>
-  // ===== POST FORM MOBILE/DESKTOP TOGGLE =====
-  function updatePostFormVisibility() {
-    const desktopForm = document.querySelector('.desktop-post-form');
-    const mobileForm = document.querySelector('.mobile-post-form');
-    
-    if (window.innerWidth <= 768) {
-      if (desktopForm) desktopForm.style.display = 'none';
-      if (mobileForm) mobileForm.style.display = 'block';
-    } else {
-      if (desktopForm) desktopForm.style.display = 'block';
-      if (mobileForm) mobileForm.style.display = 'none';
-    }
-  }
-
-  // Initial check
-  updatePostFormVisibility();
-  window.addEventListener('resize', updatePostFormVisibility);
-
-  // Sync textareas
-  const desktopText = document.getElementById('postText');
-  const mobileText = document.getElementById('mobilePostText');
-
-  if (desktopText && mobileText) {
-    desktopText.addEventListener('input', () => {
-      mobileText.value = desktopText.value;
-    });
-
-    mobileText.addEventListener('input', () => {
-      desktopText.value = mobileText.value;
-    });
-  }
-
-  // Handle mobile image upload
-  const mobileImageInput = document.getElementById('mobilePostImage');
-  if (mobileImageInput) {
-    mobileImageInput.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const preview = document.getElementById('mobilePreview');
-          const desktopPreview = document.getElementById('preview');
-          
-          if (preview) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-          }
-          
-          if (desktopPreview) {
-            desktopPreview.src = e.target.result;
-            desktopPreview.style.display = 'block';
-          }
-          
-          // Also set the desktop file input
-          const desktopFileInput = document.getElementById('postImage');
-          if (desktopFileInput) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            desktopFileInput.files = dataTransfer.files;
-          }
-        };
-        reader.readAsDataURL(file);
+    <script>
+      // ===== POST FORM MOBILE/DESKTOP TOGGLE =====
+      function updatePostFormVisibility() {
+        const desktopForm = document.querySelector('.desktop-post-form');
+        const mobileForm = document.querySelector('.mobile-post-form');
+        
+        if (window.innerWidth <= 768) {
+          if (desktopForm) desktopForm.style.display = 'none';
+          if (mobileForm) mobileForm.style.display = 'block';
+        } else {
+          if (desktopForm) desktopForm.style.display = 'block';
+          if (mobileForm) mobileForm.style.display = 'none';
+        }
       }
-    });
-  }
 
-  // Handle desktop image upload
-  const desktopImageInput = document.getElementById('postImage');
-  if (desktopImageInput) {
-    desktopImageInput.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const preview = document.getElementById('preview');
-          const mobilePreview = document.getElementById('mobilePreview');
-          
-          if (preview) {
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-          }
-          
-          if (mobilePreview) {
-            mobilePreview.src = e.target.result;
-            mobilePreview.style.display = 'block';
-          }
-          
-          // Also set the mobile file input
-          const mobileFileInput = document.getElementById('mobilePostImage');
-          if (mobileFileInput) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            mobileFileInput.files = dataTransfer.files;
-          }
-        };
-        reader.readAsDataURL(file);
+      updatePostFormVisibility();
+      window.addEventListener('resize', updatePostFormVisibility);
+
+      // Sync textareas
+      const desktopText = document.getElementById('postText');
+      const mobileText = document.getElementById('mobilePostText');
+
+      if (desktopText && mobileText) {
+        desktopText.addEventListener('input', () => {
+          mobileText.value = desktopText.value;
+        });
+
+        mobileText.addEventListener('input', () => {
+          desktopText.value = mobileText.value;
+        });
       }
-    });
-  }
 
-  // Set user avatar when page loads
-  function setPostFormAvatars() {
-    try {
-      const userData = JSON.parse(localStorage.getItem('cyon_user_data') || localStorage.getItem('user') || '{}');
-      const avatarUrl = userData.profilePicture || 'images/default-avatar.png';
-      
-      const desktopAvatar = document.getElementById('postFormAvatar');
-      const mobileAvatar = document.getElementById('mobilePostFormAvatar');
-      
-      if (desktopAvatar) desktopAvatar.src = avatarUrl;
-      if (mobileAvatar) mobileAvatar.src = avatarUrl;
-    } catch (error) {
-      console.error('Error setting avatars:', error);
-    }
-  }
+      // Handle image uploads (mobile + desktop)
+      function handleImageInputChange(inputId, previewId, mirrorInputId, mirrorPreviewId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
 
-  // Set avatars when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setPostFormAvatars);
-  } else {
-    setPostFormAvatars();
-  }
+        input.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const preview = document.getElementById(previewId);
+              const mirrorPreview = document.getElementById(mirrorPreviewId);
 
-  // Also set avatars after a short delay to ensure user data is loaded
-  setTimeout(setPostFormAvatars, 500);
-</script>
+              if (preview) {
+                preview.src = event.target.result;
+                preview.style.display = 'block';
+              }
+              if (mirrorPreview) {
+                mirrorPreview.src = event.target.result;
+                mirrorPreview.style.display = 'block';
+              }
+
+              const mirrorInput = document.getElementById(mirrorInputId);
+              if (mirrorInput) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                mirrorInput.files = dt.files;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      handleImageInputChange('postImage', 'preview', 'mobilePostImage', 'mobilePreview');
+      handleImageInputChange('mobilePostImage', 'mobilePreview', 'postImage', 'preview');
+
+      // Set avatars dynamically
+      function setPostFormAvatars() {
+        try {
+          const userData = JSON.parse(localStorage.getItem('cyon_user_data') || localStorage.getItem('user') || '{}');
+          const avatarUrl = userData.profilePicture || 'images/default-avatar.png';
+          
+          const desktopAvatar = document.getElementById('postFormAvatar');
+          const mobileAvatar = document.getElementById('mobilePostFormAvatar');
+          
+          if (desktopAvatar) desktopAvatar.src = avatarUrl;
+          if (mobileAvatar) mobileAvatar.src = avatarUrl;
+        } catch (error) {
+          console.error('Error setting avatars:', error);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setPostFormAvatars);
+      } else {
+        setPostFormAvatars();
+      }
+
+      setTimeout(setPostFormAvatars, 500);
+    </script>
+
+    <script>
+      // ===== NOTIFICATION BADGE SYNC =====
+      const desktopBadge = document.getElementById('notificationBadge');
+      const mobileBadge = document.getElementById('mobileNotificationBadge');
+
+      function syncMobileNotificationBadge() {
+        if (desktopBadge && mobileBadge) {
+          const count = desktopBadge.textContent;
+          const isVisible = desktopBadge.style.display !== "none";
+
+          if (isVisible && count > 0) {
+            mobileBadge.textContent = count;
+            mobileBadge.style.display = "flex";
+          } else {
+            mobileBadge.style.display = "none";
+          }
+        }
+      }
+
+      setInterval(syncMobileNotificationBadge, 1000);
+    </script>
+  </body>
+</html>
