@@ -9,7 +9,7 @@ class AuthService {
   getBackendBaseUrl() {
     const hostname = window.location.hostname;
     return hostname === "localhost" || hostname === "127.0.0.1"
-      ? "http://localhost:5001"
+      ? 'https://cyon-app.onrender.com'
       : `${window.location.protocol}//${window.location.hostname}:5001`;
   }
 
