@@ -76,6 +76,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -93,16 +94,24 @@ body {
   min-height: 100vh;
 }
 
+input,
+textarea,
+button,
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 /* === NAVBAR === */
 .navbar {
-  background: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 1000;
   backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.95);
 }
 
 .logo-section {
@@ -269,6 +278,60 @@ body {
   transform: translateY(-1px);
 }
 
+/* Notification Bell */
+.notification-bell {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  transition: all var(--transition-base);
+}
+
+.notification-bell:hover {
+  background: var(--bg-tertiary);
+}
+
+.notification-bell i {
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.notification-bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #f02849;
+  color: white;
+  border-radius: 12px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid var(--bg-primary);
+  animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.notification-bell-badge.show {
+  display: flex;
+}
+
+.notification-bell.has-notifications i {
+  animation: ring 2s ease infinite;
+}
+
+.notification-bell-badge.pulse {
+  animation: pulse 1.5s ease infinite;
+}
+
 /* === MAIN CONTENT === */
 #mainContent {
   max-width: 680px;
@@ -276,10 +339,7 @@ body {
   padding: 0 var(--spacing-lg);
 }
 
-/* Create Post Section */
-/* ===== FACEBOOK-STYLE POST FORM ===== */
-
-/* Post Form Container */
+/* === POST FORM === */
 #createPostSection {
   background: var(--bg-primary);
   border-radius: var(--border-radius-lg);
@@ -289,7 +349,6 @@ body {
   margin-bottom: var(--spacing-lg);
 }
 
-/* Post Form Header with Avatar */
 .post-form-header {
   display: flex;
   align-items: center;
@@ -335,7 +394,6 @@ body {
   color: var(--text-muted);
 }
 
-/* Image Preview */
 #preview {
   max-width: 100%;
   border-radius: var(--border-radius-md);
@@ -372,7 +430,6 @@ body {
   transform: scale(1.1);
 }
 
-/* Post Form Actions */
 .post-form-actions {
   display: flex;
   justify-content: space-between;
@@ -447,115 +504,73 @@ body {
   transform: none;
 }
 
-/* ===== NOTIFICATION BELL BADGE (FACEBOOK STYLE) ===== */
-
-.notification-bell {
-  position: relative;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--bg-secondary);
-  transition: all var(--transition-base);
-}
-
-.notification-bell:hover {
-  background: var(--bg-tertiary);
-}
-
-.notification-bell i {
-  font-size: 20px;
-  color: var(--text-primary);
-}
-
-.notification-bell-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #f02849;
-  color: white;
-  border-radius: 12px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
+/* Mobile Post Form */
+.mobile-post-form {
   display: none;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  border: 2px solid var(--bg-primary);
-  animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-.notification-bell-badge.show {
+.desktop-post-form {
+  display: block;
+}
+
+.post-input-row {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-@keyframes popIn {
-  0% {
-    transform: scale(0);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
+.mobile-post-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
 }
 
-.notification-bell.has-notifications i {
-  animation: ring 2s ease infinite;
+.mobile-post-buttons {
+  display: flex;
+  gap: 4px;
+  flex: 1;
 }
 
-@keyframes ring {
-  0%, 100% { transform: rotate(0deg); }
-  5%, 15% { transform: rotate(-15deg); }
-  10%, 20% { transform: rotate(15deg); }
+.mobile-action-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-/* Pulse animation for new notifications */
-.notification-bell-badge.pulse {
-  animation: pulse 1.5s ease infinite;
+.mobile-action-btn:hover {
+  background: var(--bg-secondary);
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(240, 40, 73, 0.7);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 4px rgba(240, 40, 73, 0);
-  }
+.mobile-action-btn:active {
+  transform: scale(0.95);
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 768px) {
-  .post-form-options {
-    flex-wrap: wrap;
-  }
+.mobile-action-btn i {
+  font-size: 20px;
+}
 
-  .post-option-btn {
-    font-size: 13px;
-    padding: 6px 10px;
-  }
+.mobile-action-btn.photo-btn i {
+  color: #45bd62;
+}
 
-  .post-option-btn span {
-    display: none;
-  }
+.mobile-action-btn.video-btn i {
+  color: #f3425f;
+}
 
-  .post-form-actions {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  #postForm button[type="submit"] {
-    width: 100%;
-    justify-content: center;
-  }
+.mobile-action-btn.feeling-btn i {
+  color: #f7b928;
 }
 
 /* === FEED CARDS === */
@@ -577,7 +592,6 @@ body {
   padding: var(--spacing-lg);
 }
 
-/* Reshare Indicator */
 .feed-reshare-indicator {
   display: flex;
   align-items: center;
@@ -607,7 +621,6 @@ body {
   text-decoration: underline;
 }
 
-/* Feed Header */
 .feed-header {
   display: flex;
   align-items: flex-start;
@@ -665,7 +678,6 @@ body {
   margin-top: 2px;
 }
 
-/* Feed Menu */
 .feed-menu {
   position: relative;
 }
@@ -705,17 +717,6 @@ body {
   animation: dropdownSlide var(--transition-base);
 }
 
-@keyframes dropdownSlide {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .menu-item {
   display: block;
   width: 100%;
@@ -743,7 +744,6 @@ body {
   background: #fee2e2;
 }
 
-/* Feed Content */
 .feed-text {
   font-size: 15px;
   line-height: 1.6;
@@ -767,7 +767,6 @@ body {
   opacity: 0.95;
 }
 
-/* Feed Stats & Actions */
 .feed-stats {
   padding: var(--spacing-md) 0;
   border-top: 1px solid var(--border-color);
@@ -869,7 +868,6 @@ body {
   line-height: 1.5;
 }
 
-/* Comment Form */
 .comment-form {
   display: flex;
   gap: var(--spacing-sm);
@@ -929,40 +927,92 @@ body {
   opacity: 0.5;
 }
 
-/* === RESPONSIVE DESIGN === */
-@media (max-width: 768px) {
-  :root {
-    font-size: 14px;
-  }
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 0;
+}
 
-  .nav-links {
-    display: none;
-  }
+.mobile-bottom-nav button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 8px 4px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
 
-  .hamburger {
-    display: block;
-  }
+.mobile-bottom-nav button:active {
+  transform: scale(0.95);
+}
 
-  #mainContent {
-    padding: 0 var(--spacing-md);
-    margin: var(--spacing-lg) auto;
-  }
+.mobile-bottom-nav button i {
+  font-size: 24px;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
 
-  .feed-card {
-    padding: var(--spacing-md);
-  }
+.mobile-bottom-nav button.active i {
+  color: var(--brand-primary);
+}
 
-  .logo-section {
-    padding: var(--spacing-md);
-  }
+.mobile-bottom-nav button .badge {
+  position: absolute;
+  top: 4px;
+  right: 50%;
+  transform: translateX(12px);
+  background: #f02849;
+  color: white;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--bg-primary);
+}
 
-  .org-name {
-    font-size: 14px;
-  }
+/* Mention Tags */
+.mention-tag {
+  color: var(--brand-primary);
+  background: rgba(0, 120, 44, 0.1);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
 
-  .church-name {
-    font-size: 12px;
-  }
+.mention-tag:hover {
+  background: rgba(0, 120, 44, 0.2);
+}
+
+/* Content Sections */
+.content-section {
+  display: none;
+}
+
+.content-section.active {
+  display: block;
+  animation: fadeIn var(--transition-slow);
 }
 
 /* === UTILITIES === */
@@ -1001,27 +1051,455 @@ body {
   }
 }
 
-/* Mention Tags */
-.mention-tag {
-  color: var(--brand-primary);
-  background: rgba(0, 120, 44, 0.1);
-  padding: 2px 6px;
-  border-radius: var(--border-radius-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.mention-tag:hover {
-  background: rgba(0, 120, 44, 0.2);
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-/* Content Sections */
-.content-section {
-  display: none;
+@keyframes ring {
+  0%, 100% { transform: rotate(0deg); }
+  5%, 15% { transform: rotate(-15deg); }
+  10%, 20% { transform: rotate(15deg); }
 }
 
-.content-section.active {
-  display: block;
-  animation: fadeIn var(--transition-slow);
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(240, 40, 73, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(240, 40, 73, 0);
+  }
 }
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* === MOBILE RESPONSIVE (max-width: 768px) === */
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
+
+  /* Navbar */
+  .navbar {
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+  }
+
+  .logo-section {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .logo {
+    gap: 8px;
+  }
+
+  .logo img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-text {
+    font-size: 12px;
+  }
+
+  .org-name {
+    font-size: 13px;
+  }
+
+  .church-name {
+    font-size: 11px;
+  }
+
+  /* Hide desktop navigation */
+  .nav-links {
+    display: none !important;
+  }
+
+  #logoutBtn {
+    display: none !important;
+  }
+
+  .hamburger {
+    display: flex;
+    margin-left: auto;
+  }
+
+  /* Notification bell */
+  .notification-bell {
+    width: 36px;
+    height: 36px;
+    margin-left: 8px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .notification-bell i {
+    font-size: 18px;
+  }
+
+  .notification-bell-badge {
+    top: 0;
+    right: 0;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    min-width: 18px;
+    padding: 0 4px;
+  }
+
+  /* Mobile menu */
+  .mobile-menu {
+    top: 57px;
+  }
+
+  /* Show mobile bottom nav */
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  /* Main content */
+  #mainContent {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 70px;
+  }
+
+  /* Post form */
+  #createPostSection {
+    border-radius: 0;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: none;
+    border-right: none;
+  }
+
+  .desktop-post-form {
+    display: none !important;
+  }
+
+  .mobile-post-form {
+    display: block !important;
+  }
+
+  .post-form-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  #mobilePostText {
+    flex: 1;
+    border: none;
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    padding: 10px 14px;
+    font-size: 14px;
+    min-height: 40px;
+    max-height: 120px;
+    resize: none;
+    font-family: inherit;
+    line-height: 1.4;
+  }
+
+  #mobilePostText:focus {
+    outline: none;
+    background: var(--bg-tertiary);
+  }
+
+  #mobilePostText::placeholder {
+    color: var(--text-muted);
+  }
+
+  .mobile-post-form button[type="submit"] {
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    min-width: 60px;
+  }
+
+  .mobile-post-form button[type="submit"]:hover {
+    background: #006624;
+  }
+
+  .mobile-post-form button[type="submit"]:disabled {
+    background: var(--color-gray-300);
+    cursor: not-allowed;
+  }
+
+  .post-form-options {
+    flex-wrap: wrap;
+    flex: 1;
+    justify-content: flex-start;
+    gap: 2px;
+  }
+
+  .post-option-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .post-option-btn i {
+    font-size: 20px;
+  }
+
+  .post-option-btn span {
+    display: none;
+  }
+
+  .post-option-btn.photo-btn span {
+    display: inline;
+    font-size: 13px;
+  }
+
+  .post-form-actions {
+    flex-direction: row;
+    gap: 0;
+    padding-top: 10px;
+    margin-top: 10px;
+  }
+
+  #preview {
+    margin: 10px 0;
+    border-radius: 8px;
+  }
+
+  /* Feed items */
+  .feed-item {
+    border-radius: 0;
+    margin-bottom: 8px;
+    border-left: none;
+    border-right: none;
+    animation: slideUp 0.3s ease;
+  }
+
+  .feed-card {
+    padding: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .username {
+    font-size: 14px;
+  }
+
+  .churchAttend,
+  .timestamp {
+    font-size: 12px;
+  }
+
+  .feed-text {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .feed-image {
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .feed-actions {
+    padding: 4px 0;
+  }
+
+  .feed-actions button {
+    font-size: 13px;
+    padding: 8px 4px;
+  }
+
+  .comments-section {
+    padding: 12px;
+    margin: 0 -12px -12px;
+  }
+
+  .comment {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Loading states */
+  .loading-message {
+    padding: 40px 20px;
+    font-size: 14px;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+  }
+
+  .empty-state i {
+    font-size: 40px;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* === EXTRA SMALL DEVICES (max-width: 360px) === */
+@media (max-width: 360px) {
+  .logo-text {
+    display: none;
+  }
+
+  .logo img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .notification-bell {
+    width: 32px;
+    height: 32px;
+  }
+
+  .post-form-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  #mobilePostText {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .mobile-action-btn {
+    padding: 4px 6px;
+  }
+
+  .mobile-action-btn .btn-label {
+    display: none;
+  }
+
+  .mobile-action-btn i {
+    font-size: 18px;
+  }
+
+  .mobile-bottom-nav button i {
+    font-size: 22px;
+  }
+}
+
+/* === LANDSCAPE MOBILE === */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-menu {
+    max-height: calc(100vh - 61px);
+  }
+
+  .mobile-bottom-nav {
+    padding: 4px 0;
+  }
+
+  .mobile-bottom-nav button {
+    padding: 6px 4px;
+  }
+
+  .mobile-bottom-nav button i {
+    font-size: 20px;
+  }
+
+  #mainContent {
+    padding-bottom: 60px;
+  }
+}
+
+/* === TABLET (769px - 1024px) === */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .logo-section {
+    padding: 12px 20px;
+  }
+
+  #mainContent {
+    max-width: 640px;
+  }
+
+  .nav-links button,
+  .nav-links a {
+    font-size: 18px;
+    padding: 8px 12px;
+  }
+
+  .desktop-post-form {
+    display: block !important;
+  }
+
+  .mobile-post-form {
+    display: none !important;
+  }
+
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+
+  #logoutBtn {
+    display: inline-flex !important;
+  }
+
+  .nav-links {
+    display: flex !important;
+  }
+}
+
+/* === SAFE AREA INSETS FOR NOTCHED DEVICES === */
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    .navbar {
+      padding-top: max(0px, env(safe-area-inset-top));
+    }
+
+    .mobile-bottom-nav {
+      padding-bottom: max(6px, env(safe-area-inset-bottom));
+    }
+
+    #mainContent {
+      padding-bottom: max(70px, calc(70px + env(safe-area-inset-bottom)));
+    }
+  }
+    }
