@@ -9,7 +9,7 @@ function getBackendBaseUrl() {
   const port = 5001;
 
   if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return `http://localhost:${port}`;
+    return 'https://cyon-app.onrender.com';
   }
   
   // For production/other environments
