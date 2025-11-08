@@ -1,497 +1,211 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CYON SS Joachim and Anne Ijegun Web App</title>
-    <link rel="stylesheet" href="css/style.css" />
-
-    <!-- Font Awesome Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-    <style>
-      .notification-bell {
-        position: relative;
-        cursor: pointer;
-        font-size: 24px;
-        color: #667eea;
-        padding: 10px;
-        border-radius: 50%;
-        transition: all 0.3s;
-      }
-
-      .notification-bell:hover {
-        background: #f0f0f0;
-      }
-
-      .notification-bell-badge {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        background: #dc3545;
-        color: white;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.1);
-        }
-      }
-
-      .notification-bell.has-notifications {
-        animation: ring 0.5s ease;
-      }
-
-      @keyframes ring {
-        0%,
-        100% {
-          transform: rotate(0deg);
-        }
-        10%,
-        30%,
-        50%,
-        70%,
-        90% {
-          transform: rotate(-10deg);
-        }
-        20%,
-        40%,
-        60%,
-        80% {
-          transform: rotate(10deg);
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <nav class="navbar">
-      <div class="logo-section">
-        <div class="logo">
-          <img src="images/cyon-logo-png.png" alt="CYON Logo" class="logo" />
-          <img
-            src="images/ss-joachim-anne.jpeg"
-            alt="Ss Joachim and Anne Logo"
-            class="logo"
-          />
-        </div>
-
-        <div class="logo-text">
-          <div class="org-name">The Catholic Youth Organization of Nigeria</div>
-          <div class="church-name">
-            SS Joachim & Anne Catholic Church Ijegun
-          </div>
-        </div>
-
-        <div class="nav-links" id="navlinks">
-          <button id="showFeedsBtn" title="Feeds">
-            <i class="fas fa-newspaper"></i>
-          </button>
-          <button id="showNotificationsBtn" title="Notifications">
-            <i class="fas fa-bell"></i>
-          </button>
-          <button id="showAttendanceBtn" title="Attendance">
-            <i class="fas fa-calendar-check"></i>
-          </button>
-          <button id="showDashboardBtn" title="Admin Dashboard">
-            <i class="fas fa-user-shield"></i>
-          </button>
-          <button id="showDuesBtn" title="Pay Dues">
-            <i class="fas fa-money-bill-wave"></i>
-          </button>
-          <button id="showProfileBtn" title="Profile">
-            <i class="fas fa-user"></i>
-          </button>
-        </div>
-
-        <button class="hamburger" id="hamburger" aria-label="Open menu">
-          <i class="fas fa-bars"></i>
-        </button>
-      </div>
-      <div
-        class="notification-bell"
-        id="notificationBell"
-        onclick="window.location.href='notifications.html'"
-        title="Notifications"
-      >
-        <i class="fas fa-bell"></i>
-        <span
-          class="notification-bell-badge"
-          id="notificationBadge"
-          style="display: none"
-          >0</span
-        >
-      </div>
-    </nav>
-
-    <!-- Mobile dropdown menu -->
-    <div class="mobile-menu" id="mobileMenu">
-      <a href="#" data-section="feeds"
-        ><i class="fas fa-newspaper"></i> Feeds</a
-      >
-      <a href="#" data-section="notifications"
-        ><i class="fas fa-bell"></i> Notifications</a
-      >
-      <a href="attendance.html" data-section="attendance"
-        ><i class="fas fa-calendar-check"></i> Attendance</a
-      >
-      <a href="#" data-section="dashboard"
-        ><i class="fas fa-user-shield"></i> Admin Dashboard</a
-      >
-      <a href="dues.html" data-section="dues"
-        ><i class="fas fa-money-bill-wave"></i> Pay Dues</a
-      >
-      <a href="#" data-section="profile"
-        ><i class="fas fa-user"></i> My Profile</a
-      >
-      <a
-        href="#logout"
-        class="logout-mobile"
-        style="
-          color: #ff4444;
-          border-top: 1px solid #eee;
-          margin-top: 10px;
-          padding-top: 10px;
-        "
-      >
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </a>
-    </div>
-
-    <!-- Logout Button -->
-    <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-
-    <!-- Main Content Area -->
-    <main id="mainContent">
-      <!-- Post Form -->
-      <section id="createPostSection" class="content-section active">
-        <form id="postForm" enctype="multipart/form-data">
+<!-- Replace your ENTIRE createPostSection with this -->
+<section id="createPostSection" class="content-section active">
+  <form id="postForm" enctype="multipart/form-data">
+    <!-- Desktop version -->
+    <div class="desktop-post-form">
+      <div class="post-form-header">
+        <img src="images/default-avatar.png" alt="Your avatar" class="post-form-avatar" id="postFormAvatar">
+        <div class="post-form-input-wrapper">
           <textarea
             id="postText"
             placeholder="What's on your mind?"
             rows="3"
           ></textarea>
-          <img
-            id="preview"
-            style="display: none; max-width: 200px; margin-top: 10px"
-            alt="Image Preview"
-          />
-          <input type="file" id="postImage" accept="image/*" />
-          <button type="submit">Post</button>
-        </form>
-      </section>
-
-      <!-- Feeds Container -->
-      <section id="feedsSection" class="content-section active">
-        <div id="feedContainer">
-          <div class="loading-message">Loading feeds...</div>
         </div>
-      </section>
+      </div>
 
-      <!-- Other sections (initially hidden) -->
-      <section id="notificationsSection" class="content-section">
-        <h2>Notifications</h2>
-        <div id="notificationsContainer"></div>
-      </section>
+      <img
+        id="preview"
+        style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
+        alt="Image Preview"
+      />
 
-      <section id="attendanceSection" class="content-section">
-        <h2>Attendance</h2>
-        <div id="attendanceContainer"></div>
-      </section>
+      <div class="post-form-actions">
+        <div class="post-form-options">
+          <button type="button" class="post-option-btn photo-btn" onclick="document.getElementById('postImage').click()">
+            <i class="fas fa-image photo-icon"></i>
+            <span>Photo</span>
+          </button>
+          <button type="button" class="post-option-btn video-btn">
+            <i class="fas fa-video video-icon"></i>
+            <span>Video</span>
+          </button>
+          <button type="button" class="post-option-btn feeling-btn">
+            <i class="fas fa-smile feeling-icon"></i>
+            <span>Feeling</span>
+          </button>
+          <button type="button" class="post-option-btn tag-btn">
+            <i class="fas fa-user-tag tag-icon"></i>
+            <span>Tag</span>
+          </button>
+        </div>
+        <input type="file" id="postImage" accept="image/*" style="display: none;" />
+        <button type="submit">Post</button>
+      </div>
+    </div>
 
-      <section id="dashboardSection" class="content-section">
-        <h2>Admin Dashboard</h2>
-        <div id="dashboardContainer"></div>
-      </section>
+    <!-- Mobile version -->
+    <div class="mobile-post-form" style="display: none;">
+      <div class="post-input-row">
+        <img src="images/default-avatar.png" alt="Your avatar" class="post-form-avatar" id="mobilePostFormAvatar">
+        <textarea
+          id="mobilePostText"
+          placeholder="What's on your mind?"
+          rows="1"
+        ></textarea>
+      </div>
 
-      <section id="duesSection" class="content-section">
-        <h2>Pay Dues</h2>
-        <div id="duesContainer"></div>
-      </section>
+      <img
+        id="mobilePreview"
+        style="display: none; max-width: 100%; margin-top: 10px; border-radius: 8px;"
+        alt="Image Preview"
+      />
 
-      <section id="profileSection" class="content-section">
-        <h2>My Profile</h2>
-        <div id="profileContainer"></div>
-      </section>
-    </main>
+      <div class="mobile-post-actions">
+        <div class="mobile-post-buttons">
+          <button type="button" class="mobile-action-btn photo-btn" onclick="document.getElementById('mobilePostImage').click()">
+            <i class="fas fa-image"></i>
+            <span class="btn-label">Photo</span>
+          </button>
+          <button type="button" class="mobile-action-btn video-btn">
+            <i class="fas fa-video"></i>
+          </button>
+          <button type="button" class="mobile-action-btn feeling-btn">
+            <i class="fas fa-smile"></i>
+          </button>
+        </div>
+        <input type="file" id="mobilePostImage" accept="image/*" style="display: none;" />
+        <button type="submit">Post</button>
+      </div>
+    </div>
+  </form>
+</section>
 
-    <!-- ✅ SAFETY CHECK: Block loading if no user data -->
-    <script>
-      console.log("🛡️ SAFETY CHECK: Validating user data...");
+<!-- Add this script RIGHT BEFORE the closing </body> tag (at the very end) -->
+<script>
+  // ===== POST FORM MOBILE/DESKTOP TOGGLE =====
+  function updatePostFormVisibility() {
+    const desktopForm = document.querySelector('.desktop-post-form');
+    const mobileForm = document.querySelector('.mobile-post-form');
+    
+    if (window.innerWidth <= 768) {
+      if (desktopForm) desktopForm.style.display = 'none';
+      if (mobileForm) mobileForm.style.display = 'block';
+    } else {
+      if (desktopForm) desktopForm.style.display = 'block';
+      if (mobileForm) mobileForm.style.display = 'none';
+    }
+  }
 
-      // Check for user data
-      const safetyCheckCyonUser = localStorage.getItem("cyon_user_data");
-      const safetyCheckLegacyUser = localStorage.getItem("user");
+  // Initial check
+  updatePostFormVisibility();
+  window.addEventListener('resize', updatePostFormVisibility);
 
-      if (!safetyCheckCyonUser && !safetyCheckLegacyUser) {
-        console.error("❌ CRITICAL: No user data found!");
-        alert("Session expired. Please log in again.");
-        window.location.href = "index.html";
-        throw new Error("No user data - blocking page load");
-      }
+  // Sync textareas
+  const desktopText = document.getElementById('postText');
+  const mobileText = document.getElementById('mobilePostText');
 
-      // Parse and validate
-      let validUser = null;
-      if (safetyCheckCyonUser) {
-        try {
-          validUser = JSON.parse(safetyCheckCyonUser);
-          console.log("✅ Found user in cyon_user_data:", validUser.name);
-        } catch (e) {
-          console.error("❌ Failed to parse cyon_user_data");
-        }
-      }
+  if (desktopText && mobileText) {
+    desktopText.addEventListener('input', () => {
+      mobileText.value = desktopText.value;
+    });
 
-      if (!validUser && safetyCheckLegacyUser) {
-        try {
-          validUser = JSON.parse(safetyCheckLegacyUser);
-          console.log("✅ Found user in legacy user:", validUser.name);
-        } catch (e) {
-          console.error("❌ Failed to parse legacy user");
-        }
-      }
+    mobileText.addEventListener('input', () => {
+      desktopText.value = mobileText.value;
+    });
+  }
 
-      if (!validUser || !validUser.id || !validUser.token) {
-        console.error("❌ CRITICAL: Invalid user data structure!");
-        alert("Invalid session. Please log in again.");
-        localStorage.clear();
-        window.location.href = "index.html";
-        throw new Error("Invalid user data - blocking page load");
-      }
-
-      console.log("✅ SAFETY CHECK PASSED");
-      console.log(
-        "👤 Validated user:",
-        validUser.name,
-        validUser.email,
-        validUser.role
-      );
-      console.log("-----------------------------------");
-    </script>
-
-    <!-- ✅ DIAGNOSTIC: Check user BEFORE any modules load -->
-    <script>
-      console.log("🔬 PRE-LOAD DIAGNOSTIC STARTING...");
-      console.log("📊 Checking localStorage BEFORE modules load...");
-
-      // Check what's in storage RIGHT NOW
-      const diagnosticCyonUser = localStorage.getItem("cyon_user_data");
-      const diagnosticLegacyUser = localStorage.getItem("user");
-
-      console.log("cyon_user_data exists:", !!diagnosticCyonUser);
-      console.log("user exists:", !!diagnosticLegacyUser);
-
-      if (diagnosticCyonUser) {
-        try {
-          const parsed = JSON.parse(diagnosticCyonUser);
-          console.log("✅ cyon_user_data:", {
-            name: parsed.name,
-            email: parsed.email,
-            id: parsed.id,
-            role: parsed.role,
-          });
-        } catch (e) {
-          console.error("❌ Failed to parse cyon_user_data:", e);
-        }
-      }
-
-      if (diagnosticLegacyUser) {
-        try {
-          const parsed = JSON.parse(diagnosticLegacyUser);
-          console.log("✅ user (legacy):", {
-            name: parsed.name,
-            email: parsed.email,
-            id: parsed.id,
-            role: parsed.role,
-          });
-        } catch (e) {
-          console.error("❌ Failed to parse user:", e);
-        }
-      }
-
-      console.log("🔬 PRE-LOAD DIAGNOSTIC COMPLETE");
-      console.log("-----------------------------------");
-    </script>
-
-    <!-- ✅ FIXED: Proper script loading order with cache busting -->
-
-    <!-- 1. Socket.IO -->
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
-    <!-- 2. Auth service (loads first, regular script) -->
-    <script src="js/auth-service.js?v=3"></script>
-
-    <!-- 3. Auth and page protection (regular script) -->
-    <script src="js/auth.js?v=3"></script>
-
-    <!-- 4. ES6 Modules (MUST have type="module") -->
-    <!-- Load utils first since other modules depend on it -->
-    <script type="module" src="js/utils.js?v=3"></script>
-    <script type="module" src="js/app.js?v=3"></script>
-
-    <!-- 5. Tagging system (regular script, must load before ui.js) -->
-    <script src="js/tagging-system.js?v=3"></script>
-
-    <!-- 6. UI and feeds controller (modules) -->
-    <script type="module" src="js/ui.js?v=3"></script>
-    <script type="module" src="js/feeds-controller.js?v=3"></script>
-
-    <!-- 5. Optional: Dashboard module if it exists -->
-    <!-- <script type="module" src="js/dashboard.js"></script> -->
-
-    <script>
-      // ✅ CRITICAL FIX: Force fresh user data on every page load
-      document.addEventListener("DOMContentLoaded", function () {
-        // Check if this is a fresh login (just redirected from login page)
-        const urlParams = new URLSearchParams(window.location.search);
-        const fromLogin = urlParams.get("fresh") === "true";
-
-        if (fromLogin) {
-          console.log("🔄 Fresh login detected - clearing cache");
-          // Clear the URL parameter
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-          // Force a hard reload to clear all JavaScript cache
-          window.location.reload(true);
-        }
-
-        // Logout Success Message Handler
-        if (urlParams.get("logout") === "success") {
-          const tempMessage = document.createElement("div");
-          tempMessage.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #4CAF50;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
-            z-index: 10000;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          `;
-          tempMessage.innerHTML =
-            '<i class="fas fa-check-circle"></i> You have been successfully logged out!';
-          document.body.appendChild(tempMessage);
-
-          setTimeout(() => {
-            tempMessage.remove();
-            window.history.replaceState(
-              {},
-              document.title,
-              window.location.pathname
-            );
-          }, 3000);
-        }
-      });
-    </script>
-    <script type="module">
-      import { getToken, getBackendBaseUrl } from "./js/utils.js";
-
-      // Update notification bell badge
-      async function updateNotificationBadge() {
-        try {
-          const response = await fetch(
-            `${getBackendBaseUrl()}/api/notifications/unread-count`,
-            {
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
-            }
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-            const badge = document.getElementById("notificationBadge");
-            const bell = document.getElementById("notificationBell");
-
-            if (data.count > 0) {
-              badge.textContent = data.count > 99 ? "99+" : data.count;
-              badge.style.display = "flex";
-              bell.classList.add("has-notifications");
-            } else {
-              badge.style.display = "none";
-              bell.classList.remove("has-notifications");
-            }
+  // Handle mobile image upload
+  const mobileImageInput = document.getElementById('mobilePostImage');
+  if (mobileImageInput) {
+    mobileImageInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('mobilePreview');
+          const desktopPreview = document.getElementById('preview');
+          
+          if (preview) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
           }
-        } catch (error) {
-          console.error("Error updating notification badge:", error);
-        }
+          
+          if (desktopPreview) {
+            desktopPreview.src = e.target.result;
+            desktopPreview.style.display = 'block';
+          }
+          
+          // Also set the desktop file input
+          const desktopFileInput = document.getElementById('postImage');
+          if (desktopFileInput) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            desktopFileInput.files = dataTransfer.files;
+          }
+        };
+        reader.readAsDataURL(file);
       }
+    });
+  }
 
-      // Listen for new notifications via Socket.IO
-      if (window.feedsController && window.feedsController.socket) {
-        window.feedsController.socket.on("newNotification", (notification) => {
-          console.log("🔔 New notification:", notification);
-
-          // Update badge
-          updateNotificationBadge();
-
-          // Show toast notification
-          const toast = document.createElement("div");
-          toast.style.cssText = `
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 9999;
-            max-width: 350px;
-            animation: slideIn 0.3s ease;
-            cursor: pointer;
-        `;
-
-          toast.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="${
-                  notification.from?.profilePic || "./images/default-avatar.png"
-                }" 
-                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                <div>
-                    <div style="font-weight: 600; color: #333; margin-bottom: 5px;">New Notification</div>
-                    <div style="font-size: 14px; color: #666;">${
-                      notification.text
-                    }</div>
-                </div>
-            </div>
-        `;
-
-          toast.onclick = () => (window.location.href = "notifications.html");
-          document.body.appendChild(toast);
-
-          // Auto-remove after 5 seconds
-          setTimeout(() => {
-            toast.style.opacity = "0";
-            setTimeout(() => toast.remove(), 300);
-          }, 5000);
-        });
+  // Handle desktop image upload
+  const desktopImageInput = document.getElementById('postImage');
+  if (desktopImageInput) {
+    desktopImageInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('preview');
+          const mobilePreview = document.getElementById('mobilePreview');
+          
+          if (preview) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+          }
+          
+          if (mobilePreview) {
+            mobilePreview.src = e.target.result;
+            mobilePreview.style.display = 'block';
+          }
+          
+          // Also set the mobile file input
+          const mobileFileInput = document.getElementById('mobilePostImage');
+          if (mobileFileInput) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            mobileFileInput.files = dataTransfer.files;
+          }
+        };
+        reader.readAsDataURL(file);
       }
+    });
+  }
 
-      // Initial load
-      updateNotificationBadge();
+  // Set user avatar when page loads
+  function setPostFormAvatars() {
+    try {
+      const userData = JSON.parse(localStorage.getItem('cyon_user_data') || localStorage.getItem('user') || '{}');
+      const avatarUrl = userData.profilePicture || 'images/default-avatar.png';
+      
+      const desktopAvatar = document.getElementById('postFormAvatar');
+      const mobileAvatar = document.getElementById('mobilePostFormAvatar');
+      
+      if (desktopAvatar) desktopAvatar.src = avatarUrl;
+      if (mobileAvatar) mobileAvatar.src = avatarUrl;
+    } catch (error) {
+      console.error('Error setting avatars:', error);
+    }
+  }
 
-      // Refresh every 30 seconds
-      setInterval(updateNotificationBadge, 30000);
-    </script>
-  </body>
-</html>
+  // Set avatars when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setPostFormAvatars);
+  } else {
+    setPostFormAvatars();
+  }
+
+  // Also set avatars after a short delay to ensure user data is loaded
+  setTimeout(setPostFormAvatars, 500);
+</script>
