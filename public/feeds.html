@@ -173,7 +173,7 @@
       </a>
     </div>
 
-    <!-- Logout Button -->
+    <!-- Logout Button (Hidden on desktop, shown in mobile menu) -->
     <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
 
     <!-- Main Content Area -->
@@ -181,18 +181,45 @@
       <!-- Post Form -->
       <section id="createPostSection" class="content-section active">
         <form id="postForm" enctype="multipart/form-data">
-          <textarea
-            id="postText"
-            placeholder="What's on your mind?"
-            rows="3"
-          ></textarea>
-          <img
-            id="preview"
-            style="display: none; max-width: 200px; margin-top: 10px"
-            alt="Image Preview"
-          />
-          <input type="file" id="postImage" accept="image/*" />
-          <button type="submit">Post</button>
+          <!-- Post Input Area -->
+          <div class="post-form-header">
+            <img src="images/default-avatar.png" alt="Your Avatar" class="post-form-avatar" id="postFormAvatar">
+            <div class="post-form-input-wrapper">
+              <textarea
+                id="postText"
+                placeholder="What's on your mind?"
+                rows="1"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Image Preview Container -->
+          <div class="preview-container" id="previewContainer" style="display: none;">
+            <img id="preview" alt="Image Preview" />
+            <button type="button" class="remove-preview" id="removePreview">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Post Actions -->
+          <div class="post-form-actions">
+            <div class="post-form-options">
+              <button type="button" class="post-option-btn" id="photoBtn">
+                <i class="fas fa-image photo-icon"></i>
+                <span>Photo</span>
+              </button>
+              <button type="button" class="post-option-btn" id="videoBtn" style="display: none;">
+                <i class="fas fa-video video-icon"></i>
+                <span>Video</span>
+              </button>
+              <button type="button" class="post-option-btn" id="feelingBtn" style="display: none;">
+                <i class="fas fa-smile feeling-icon"></i>
+                <span>Feeling</span>
+              </button>
+            </div>
+            <input type="file" id="postImage" accept="image/*" style="display: none;" />
+            <button type="submit" id="submitPostBtn">Post</button>
+          </div>
         </form>
       </section>
 
@@ -401,6 +428,65 @@
             );
           }, 3000);
         }
+
+        // ===== POST FORM IMAGE UPLOAD FUNCTIONALITY =====
+        const photoBtn = document.getElementById('photoBtn');
+        const postImage = document.getElementById('postImage');
+        const preview = document.getElementById('preview');
+        const previewContainer = document.getElementById('previewContainer');
+        const removePreview = document.getElementById('removePreview');
+        const postText = document.getElementById('postText');
+        
+        // Load user avatar
+        const cyonUserData = localStorage.getItem('cyon_user_data');
+        if (cyonUserData) {
+          try {
+            const userData = JSON.parse(cyonUserData);
+            const postFormAvatar = document.getElementById('postFormAvatar');
+            if (userData.profilePic) {
+              postFormAvatar.src = userData.profilePic;
+            }
+          } catch (e) {
+            console.error('Failed to load user avatar:', e);
+          }
+        }
+
+        // Auto-resize textarea
+        postText.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        // Photo button click handler
+        if (photoBtn) {
+          photoBtn.addEventListener('click', function() {
+            postImage.click();
+          });
+        }
+
+        // Image selection handler
+        if (postImage) {
+          postImage.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
+
+        // Remove preview handler
+        if (removePreview) {
+          removePreview.addEventListener('click', function() {
+            preview.src = '';
+            previewContainer.style.display = 'none';
+            postImage.value = '';
+          });
+        }
       });
     </script>
     <script type="module">
@@ -494,5 +580,4 @@
       setInterval(updateNotificationBadge, 30000);
     </script>
   </body>
-
 </html>
