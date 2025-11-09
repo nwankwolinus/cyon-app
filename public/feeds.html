@@ -7,7 +7,76 @@
     <link rel="stylesheet" href="css/style.css" />
 
     <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style>
+      .notification-bell {
+        position: relative;
+        cursor: pointer;
+        font-size: 24px;
+        color: #667eea;
+        padding: 10px;
+        border-radius: 50%;
+        transition: all 0.3s;
+      }
+
+      .notification-bell:hover {
+        background: #f0f0f0;
+      }
+
+      .notification-bell-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      .notification-bell.has-notifications {
+        animation: ring 0.5s ease;
+      }
+
+      @keyframes ring {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: rotate(-10deg);
+        }
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: rotate(10deg);
+        }
+      }
+    </style>
   </head>
 
   <body>
@@ -15,38 +84,91 @@
       <div class="logo-section">
         <div class="logo">
           <img src="images/cyon-logo-png.png" alt="CYON Logo" class="logo" />
-          <img src="images/ss-joachim-anne.jpeg" alt="Ss Joachim and Anne Logo" class="logo" />
+          <img
+            src="images/ss-joachim-anne.jpeg"
+            alt="Ss Joachim and Anne Logo"
+            class="logo"
+          />
         </div>
 
         <div class="logo-text">
           <div class="org-name">The Catholic Youth Organization of Nigeria</div>
-          <div class="church-name">SS Joachim & Anne Catholic Church Ijegun</div>
+          <div class="church-name">
+            SS Joachim & Anne Catholic Church Ijegun
+          </div>
         </div>
 
         <div class="nav-links" id="navlinks">
-          <button id="showFeedsBtn" title="Feeds"><i class="fas fa-newspaper"></i></button>
-          <button id="showNotificationsBtn" title="Notifications"><i class="fas fa-bell"></i></button>
-          <button id="showAttendanceBtn" title="Attendance"><i class="fas fa-calendar-check"></i></button>
-          <button id="showDashboardBtn" title="Admin Dashboard"><i class="fas fa-user-shield"></i></button>
-          <button id="showDuesBtn" title="Pay Dues"><i class="fas fa-money-bill-wave"></i></button>
-          <button id="showProfileBtn" title="Profile"><i class="fas fa-user"></i></button>
+          <button id="showFeedsBtn" title="Feeds">
+            <i class="fas fa-newspaper"></i>
+          </button>
+          <button id="showNotificationsBtn" title="Notifications">
+            <i class="fas fa-bell"></i>
+          </button>
+          <button id="showAttendanceBtn" title="Attendance">
+            <i class="fas fa-calendar-check"></i>
+          </button>
+          <button id="showDashboardBtn" title="Admin Dashboard">
+            <i class="fas fa-user-shield"></i>
+          </button>
+          <button id="showDuesBtn" title="Pay Dues">
+            <i class="fas fa-money-bill-wave"></i>
+          </button>
+          <button id="showProfileBtn" title="Profile">
+            <i class="fas fa-user"></i>
+          </button>
         </div>
 
         <button class="hamburger" id="hamburger" aria-label="Open menu">
           <i class="fas fa-bars"></i>
         </button>
       </div>
+      <div
+        class="notification-bell"
+        id="notificationBell"
+        onclick="window.location.href='notifications.html'"
+        title="Notifications"
+      >
+        <i class="fas fa-bell"></i>
+        <span
+          class="notification-bell-badge"
+          id="notificationBadge"
+          style="display: none"
+          >0</span
+        >
+      </div>
     </nav>
 
     <!-- Mobile dropdown menu -->
     <div class="mobile-menu" id="mobileMenu">
-      <a href="#" data-section="feeds"><i class="fas fa-newspaper"></i> Feeds</a>
-      <a href="#" data-section="notifications"><i class="fas fa-bell"></i> Notifications</a>
-      <a href="#" data-section="attendance"><i class="fas fa-calendar-check"></i> Attendance</a>
-      <a href="#" data-section="dashboard"><i class="fas fa-user-shield"></i> Admin Dashboard</a>
-      <a href="#" data-section="dues"><i class="fas fa-money-bill-wave"></i> Pay Dues</a> 
-      <a href="#" data-section="profile"><i class="fas fa-user"></i> My Profile</a> 
-      <a href="#logout" class="logout-mobile" style="color: #ff4444; border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px;">
+      <a href="#" data-section="feeds"
+        ><i class="fas fa-newspaper"></i> Feeds</a
+      >
+      <a href="#" data-section="notifications"
+        ><i class="fas fa-bell"></i> Notifications</a
+      >
+      <a href="attendance.html" data-section="attendance"
+        ><i class="fas fa-calendar-check"></i> Attendance</a
+      >
+      <a href="#" data-section="dashboard"
+        ><i class="fas fa-user-shield"></i> Admin Dashboard</a
+      >
+      <a href="dues.html" data-section="dues"
+        ><i class="fas fa-money-bill-wave"></i> Pay Dues</a
+      >
+      <a href="#" data-section="profile"
+        ><i class="fas fa-user"></i> My Profile</a
+      >
+      <a
+        href="#logout"
+        class="logout-mobile"
+        style="
+          color: #ff4444;
+          border-top: 1px solid #eee;
+          margin-top: 10px;
+          padding-top: 10px;
+        "
+      >
         <i class="fas fa-sign-out-alt"></i> Logout
       </a>
     </div>
@@ -59,8 +181,16 @@
       <!-- Post Form -->
       <section id="createPostSection" class="content-section active">
         <form id="postForm" enctype="multipart/form-data">
-          <textarea id="postText" placeholder="What's on your mind?" rows="3"></textarea>
-          <img id="preview" style="display:none; max-width:200px; margin-top:10px;" alt="Image Preview" />
+          <textarea
+            id="postText"
+            placeholder="What's on your mind?"
+            rows="3"
+          ></textarea>
+          <img
+            id="preview"
+            style="display: none; max-width: 200px; margin-top: 10px"
+            alt="Image Preview"
+          />
           <input type="file" id="postImage" accept="image/*" />
           <button type="submit">Post</button>
         </form>
@@ -102,140 +232,149 @@
 
     <!-- ✅ SAFETY CHECK: Block loading if no user data -->
     <script>
-      console.log('🛡️ SAFETY CHECK: Validating user data...');
-      
+      console.log("🛡️ SAFETY CHECK: Validating user data...");
+
       // Check for user data
-      const safetyCheckCyonUser = localStorage.getItem('cyon_user_data');
-      const safetyCheckLegacyUser = localStorage.getItem('user');
-      
+      const safetyCheckCyonUser = localStorage.getItem("cyon_user_data");
+      const safetyCheckLegacyUser = localStorage.getItem("user");
+
       if (!safetyCheckCyonUser && !safetyCheckLegacyUser) {
-        console.error('❌ CRITICAL: No user data found!');
-        alert('Session expired. Please log in again.');
-        window.location.href = 'welcome.html';
-        throw new Error('No user data - blocking page load');
+        console.error("❌ CRITICAL: No user data found!");
+        alert("Session expired. Please log in again.");
+        window.location.href = "index.html";
+        throw new Error("No user data - blocking page load");
       }
-      
+
       // Parse and validate
       let validUser = null;
       if (safetyCheckCyonUser) {
         try {
           validUser = JSON.parse(safetyCheckCyonUser);
-          console.log('✅ Found user in cyon_user_data:', validUser.name);
+          console.log("✅ Found user in cyon_user_data:", validUser.name);
         } catch (e) {
-          console.error('❌ Failed to parse cyon_user_data');
+          console.error("❌ Failed to parse cyon_user_data");
         }
       }
-      
+
       if (!validUser && safetyCheckLegacyUser) {
         try {
           validUser = JSON.parse(safetyCheckLegacyUser);
-          console.log('✅ Found user in legacy user:', validUser.name);
+          console.log("✅ Found user in legacy user:", validUser.name);
         } catch (e) {
-          console.error('❌ Failed to parse legacy user');
+          console.error("❌ Failed to parse legacy user");
         }
       }
-      
+
       if (!validUser || !validUser.id || !validUser.token) {
-        console.error('❌ CRITICAL: Invalid user data structure!');
-        alert('Invalid session. Please log in again.');
+        console.error("❌ CRITICAL: Invalid user data structure!");
+        alert("Invalid session. Please log in again.");
         localStorage.clear();
-        window.location.href = 'welcome.html';
-        throw new Error('Invalid user data - blocking page load');
+        window.location.href = "index.html";
+        throw new Error("Invalid user data - blocking page load");
       }
-      
-      console.log('✅ SAFETY CHECK PASSED');
-      console.log('👤 Validated user:', validUser.name, validUser.email, validUser.role);
-      console.log('-----------------------------------');
+
+      console.log("✅ SAFETY CHECK PASSED");
+      console.log(
+        "👤 Validated user:",
+        validUser.name,
+        validUser.email,
+        validUser.role
+      );
+      console.log("-----------------------------------");
     </script>
-    
+
     <!-- ✅ DIAGNOSTIC: Check user BEFORE any modules load -->
     <script>
-      console.log('🔬 PRE-LOAD DIAGNOSTIC STARTING...');
-      console.log('📊 Checking localStorage BEFORE modules load...');
-      
+      console.log("🔬 PRE-LOAD DIAGNOSTIC STARTING...");
+      console.log("📊 Checking localStorage BEFORE modules load...");
+
       // Check what's in storage RIGHT NOW
-      const diagnosticCyonUser = localStorage.getItem('cyon_user_data');
-      const diagnosticLegacyUser = localStorage.getItem('user');
-      
-      console.log('cyon_user_data exists:', !!diagnosticCyonUser);
-      console.log('user exists:', !!diagnosticLegacyUser);
-      
+      const diagnosticCyonUser = localStorage.getItem("cyon_user_data");
+      const diagnosticLegacyUser = localStorage.getItem("user");
+
+      console.log("cyon_user_data exists:", !!diagnosticCyonUser);
+      console.log("user exists:", !!diagnosticLegacyUser);
+
       if (diagnosticCyonUser) {
         try {
           const parsed = JSON.parse(diagnosticCyonUser);
-          console.log('✅ cyon_user_data:', {
+          console.log("✅ cyon_user_data:", {
             name: parsed.name,
             email: parsed.email,
             id: parsed.id,
-            role: parsed.role
+            role: parsed.role,
           });
         } catch (e) {
-          console.error('❌ Failed to parse cyon_user_data:', e);
+          console.error("❌ Failed to parse cyon_user_data:", e);
         }
       }
-      
+
       if (diagnosticLegacyUser) {
         try {
           const parsed = JSON.parse(diagnosticLegacyUser);
-          console.log('✅ user (legacy):', {
+          console.log("✅ user (legacy):", {
             name: parsed.name,
             email: parsed.email,
             id: parsed.id,
-            role: parsed.role
+            role: parsed.role,
           });
         } catch (e) {
-          console.error('❌ Failed to parse user:', e);
+          console.error("❌ Failed to parse user:", e);
         }
       }
-      
-      console.log('🔬 PRE-LOAD DIAGNOSTIC COMPLETE');
-      console.log('-----------------------------------');
+
+      console.log("🔬 PRE-LOAD DIAGNOSTIC COMPLETE");
+      console.log("-----------------------------------");
     </script>
-    
-    <!-- ✅ FIXED: Proper script loading order -->
-    
+
+    <!-- ✅ FIXED: Proper script loading order with cache busting -->
+
     <!-- 1. Socket.IO -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    
+
     <!-- 2. Auth service (loads first, regular script) -->
-    <script src="js/auth-service.js"></script>
-    
+    <script src="js/auth-service.js?v=3"></script>
+
     <!-- 3. Auth and page protection (regular script) -->
-    <script src="js/auth.js"></script>
-    
+    <script src="js/auth.js?v=3"></script>
+
     <!-- 4. ES6 Modules (MUST have type="module") -->
     <!-- Load utils first since other modules depend on it -->
-    <script type="module" src="js/utils.js"></script>
-    <script type="module" src="js/app.js"></script>
-    
+    <script type="module" src="js/utils.js?v=3"></script>
+    <script type="module" src="js/app.js?v=3"></script>
+
     <!-- 5. Tagging system (regular script, must load before ui.js) -->
-    <script src="js/tagging-system.js"></script>
-    
+    <script src="js/tagging-system.js?v=3"></script>
+
     <!-- 6. UI and feeds controller (modules) -->
-    <script type="module" src="js/ui.js"></script>
-    <script type="module" src="js/feeds-controller.js"></script>
-    
+    <script type="module" src="js/ui.js?v=3"></script>
+    <script type="module" src="js/feeds-controller.js?v=3"></script>
+
     <!-- 5. Optional: Dashboard module if it exists -->
     <!-- <script type="module" src="js/dashboard.js"></script> -->
 
     <script>
       // ✅ CRITICAL FIX: Force fresh user data on every page load
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         // Check if this is a fresh login (just redirected from login page)
         const urlParams = new URLSearchParams(window.location.search);
-        const fromLogin = urlParams.get('fresh') === 'true';
-        
+        const fromLogin = urlParams.get("fresh") === "true";
+
         if (fromLogin) {
-          console.log('🔄 Fresh login detected - clearing cache');
+          console.log("🔄 Fresh login detected - clearing cache");
           // Clear the URL parameter
-          window.history.replaceState({}, document.title, window.location.pathname);
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
           // Force a hard reload to clear all JavaScript cache
           window.location.reload(true);
         }
-        
+
         // Logout Success Message Handler
-        if (urlParams.get('logout') === 'success') {
-          const tempMessage = document.createElement('div');
+        if (urlParams.get("logout") === "success") {
+          const tempMessage = document.createElement("div");
           tempMessage.style.cssText = `
             position: fixed;
             top: 20px;
@@ -249,15 +388,111 @@
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
           `;
-          tempMessage.innerHTML = '<i class="fas fa-check-circle"></i> You have been successfully logged out!';
+          tempMessage.innerHTML =
+            '<i class="fas fa-check-circle"></i> You have been successfully logged out!';
           document.body.appendChild(tempMessage);
-          
+
           setTimeout(() => {
             tempMessage.remove();
-            window.history.replaceState({}, document.title, window.location.pathname);
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
           }, 3000);
         }
       });
     </script>
+    <script type="module">
+      import { getToken, getBackendBaseUrl } from "./js/utils.js";
+
+      // Update notification bell badge
+      async function updateNotificationBadge() {
+        try {
+          const response = await fetch(
+            `${getBackendBaseUrl()}/api/notifications/unread-count`,
+            {
+              headers: {
+                Authorization: `Bearer ${getToken()}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const badge = document.getElementById("notificationBadge");
+            const bell = document.getElementById("notificationBell");
+
+            if (data.count > 0) {
+              badge.textContent = data.count > 99 ? "99+" : data.count;
+              badge.style.display = "flex";
+              bell.classList.add("has-notifications");
+            } else {
+              badge.style.display = "none";
+              bell.classList.remove("has-notifications");
+            }
+          }
+        } catch (error) {
+          console.error("Error updating notification badge:", error);
+        }
+      }
+
+      // Listen for new notifications via Socket.IO
+      if (window.feedsController && window.feedsController.socket) {
+        window.feedsController.socket.on("newNotification", (notification) => {
+          console.log("🔔 New notification:", notification);
+
+          // Update badge
+          updateNotificationBadge();
+
+          // Show toast notification
+          const toast = document.createElement("div");
+          toast.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 9999;
+            max-width: 350px;
+            animation: slideIn 0.3s ease;
+            cursor: pointer;
+        `;
+
+          toast.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${
+                  notification.from?.profilePic || "./images/default-avatar.png"
+                }" 
+                     style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                <div>
+                    <div style="font-weight: 600; color: #333; margin-bottom: 5px;">New Notification</div>
+                    <div style="font-size: 14px; color: #666;">${
+                      notification.text
+                    }</div>
+                </div>
+            </div>
+        `;
+
+          toast.onclick = () => (window.location.href = "notifications.html");
+          document.body.appendChild(toast);
+
+          // Auto-remove after 5 seconds
+          setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => toast.remove(), 300);
+          }, 5000);
+        });
+      }
+
+      // Initial load
+      updateNotificationBadge();
+
+      // Refresh every 30 seconds
+      setInterval(updateNotificationBadge, 30000);
+    </script>
   </body>
-</html> 
+
+</html>
