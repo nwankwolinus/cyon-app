@@ -1,6 +1,11 @@
 // auth.js - Authentication form handlers and page protection
 
-const backendBaseUrl = 'https://cyon-app.onrender.com';
+const backendBaseUrl = (function() {
+  const hostname = window.location.hostname;
+  return (hostname === "localhost" || hostname === "127.0.0.1")
+    ? "http://localhost:5001"
+    : `${window.location.protocol}//${window.location.hostname}:5001`;
+})();
 
 // ===== Enhanced Logout Function =====
 function logout() {
@@ -15,7 +20,7 @@ function logout() {
   // Fallback: Manual logout
   localStorage.clear();
   sessionStorage.clear();
-  window.location.href = 'index.html?logout=success';
+  window.location.href = 'welcome.html?logout=success';
 }
 
 // ===== Check Authentication Status =====
@@ -229,7 +234,7 @@ if (window.location.pathname.includes('feeds.html')) {
   if (!isAuthenticated()) {
     console.log('🚫 Not authenticated, redirecting to welcome page');
     setTimeout(() => {
-      window.location.href = "index.html";
+      window.location.href = "welcome.html";
     }, 100);
   } else {
     const user = getCurrentUser();
