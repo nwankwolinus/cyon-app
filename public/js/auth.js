@@ -1,256 +1,192 @@
-// auth.js - Authentication form handlers and page protection
+// routes/auth.js
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const auth = require("../middleware/auth");
+const upload = require('../middleware/upload');
 
-const backendBaseUrl = 'https://cyon-app.onrender.com';
 
-// ===== Enhanced Logout Function =====
-function logout() {
-  console.log('🚪 Performing logout...');
-  
-  // Use authService if available
-  if (window.authService && typeof window.authService.logout === 'function') {
-    window.authService.logout();
-    return;
-  }
-  
-  // Fallback: Manual logout
-  localStorage.clear();
-  sessionStorage.clear();
-  window.location.href = 'index.html?logout=success';
-}
+const router = express.Router();
 
-// ===== Check Authentication Status =====
-function isAuthenticated() {
-  // Use authService if available
-  if (window.authService && typeof window.authService.isAuthenticated === 'function') {
-    return window.authService.isAuthenticated();
-  }
+const { addToBlacklist } = require('../utils/tokenBlacklist');
 
-  // Fallback: Manual check
-  const userData = localStorage.getItem('user') || localStorage.getItem('cyon_user_data');
-  if (!userData) return false;
-  
+
+
+/**
+ * @route   POST /api/auth/register
+ * @desc    Register a new user
+ * @access  Public
+ */
+// routes/auth.js
+// Register with profile picture upload
+router.post('/register', upload.single('profilePic'), async (req, res) => {
+  const { name, email, password, church, gender, dob } = req.body;
+
   try {
-    const user = JSON.parse(userData);
-    const token = user.token;
-    
-    if (!token) return false;
+    // Check for existing email
+    let user = await User.findOne({ email: email.toLowerCase() });
+    if (user) {
+      return res.status(400).json({ msg: 'User already exists' });
+    }
 
-    // Validate token expiration
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.exp * 1000 > Date.now();
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Handle profile picture
+    let profilePicUrl = '';
+    if (req.file) {
+      profilePicUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
+
+    // Create user with default role 'probation'
+    user = new User({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      church,
+      gender,
+      dob,
+      profilePic: profilePicUrl
+    });
+
+    await user.save();
+
+    // Generate token
+    const payload = { id: user.id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    res.status(201).json({
+      msg: 'Registration successful',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        church: user.church,
+        profilePic: user.profilePic,
+        gender: user.gender,
+        dob: user.dob
+      }
+    });
+
   } catch (err) {
-    localStorage.removeItem('user');
-    localStorage.removeItem('cyon_user_data');
-    return false;
+    console.error(err.message);
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
-}
+});
 
-// ===== Get Current User =====
-function getCurrentUser() {
-  // Use authService if available
-  if (window.authService && typeof window.authService.getCurrentUser === 'function') {
-    return window.authService.getCurrentUser();
+/**
+ * @route   POST /api/auth/login
+ * @desc    Login user & return JWT
+ * @access  Public
+ */
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Check user
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
+
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+
+    // Sign JWT
+    const payload = { id: user.id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        church: user.church,
+        profilePic: user.profilePic,
+        gender: user.gender,
+        dob: user.dob
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
   }
+});
 
-  // Fallback: Manual retrieval
-  const userData = localStorage.getItem('user') || localStorage.getItem('cyon_user_data');
-  return userData ? JSON.parse(userData) : null;
-}
-
-// ===== Register Form Handler =====
-const registerForm = document.getElementById("registerForm");
-if (registerForm) {
-  registerForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh JWT token
+ * @access  Private
+ */
+router.post("/refresh", auth, async (req, res) => {
+  try {
+    console.log('🔄 Token refresh requested for user:', req.user.id);
     
-    const formData = {
-      name: document.getElementById("name").value,
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value,
-      gender: document.getElementById("gender").value,
-      church: document.getElementById("church").value,
-      dob: document.getElementById("dob").value,
-      profilePic: document.getElementById("profilePic").value || undefined,
-    };
-
-    const msgDiv = document.getElementById("registerMessage");
-    const registerBtn = document.getElementById("registerBtn");
-    
-    msgDiv.textContent = "Creating your account...";
-    msgDiv.style.color = "gray";
-    
-    if (registerBtn) {
-      registerBtn.disabled = true;
-      registerBtn.textContent = "Creating Account...";
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
     }
 
-    try {
-      // Use authService if available
-      if (window.authService && typeof window.authService.register === 'function') {
-        const result = await window.authService.register(formData);
-        
-        if (!result.success) {
-          throw new Error(result.error || "Registration failed");
-        }
-        
-        msgDiv.style.color = "green";
-        msgDiv.textContent = "Registration successful! Redirecting to login...";
-        setTimeout(() => (window.location.href = "login.html"), 1500);
-      } else {
-        // Fallback: Direct API call
-        const res = await fetch(`${backendBaseUrl}/api/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
+    // Generate new token with same expiration (1 day)
+    const payload = { id: user.id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-        const data = await res.json();
+    console.log('✅ Token refreshed for:', user.email);
 
-        if (!res.ok) throw new Error(data.msg || "Registration failed");
-        
-        msgDiv.style.color = "green";
-        msgDiv.textContent = "Registration successful! Redirecting to login...";
-        setTimeout(() => (window.location.href = "login.html"), 1500);
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        church: user.church,
+        profilePic: user.profilePic,
+        gender: user.gender,
+        dob: user.dob
       }
-    } catch (err) {
-      msgDiv.style.color = "red";
-      msgDiv.textContent = err.message;
-      
-      if (registerBtn) {
-        registerBtn.disabled = false;
-        registerBtn.textContent = "Register";
-      }
-    }
-  });
-}
-
-// ===== Login Form Handler =====
-const loginForm = document.getElementById("loginForm");
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById("loginEmail").value.trim();
-    const password = document.getElementById("loginPassword").value;
-    
-    const msgDiv = document.getElementById("loginMessage");
-    const loginBtn = loginForm.querySelector('button[type="submit"]');
-    
-    msgDiv.textContent = "Logging in...";
-    msgDiv.style.color = "gray";
-    
-    if (loginBtn) {
-      loginBtn.disabled = true;
-      loginBtn.textContent = "Logging in...";
-    }
-
-    try {
-      console.log('🔐 Attempting login for:', email);
-      
-      // Use authService if available
-      if (window.authService && typeof window.authService.login === 'function') {
-        const result = await window.authService.login(email, password);
-        
-        if (!result.success) {
-          throw new Error(result.error || "Login failed");
-        }
-        
-        console.log('✅ Login successful via authService');
-        msgDiv.style.color = "green";
-        msgDiv.textContent = "Login successful! Redirecting...";
-        
-        setTimeout(() => {
-          // Force hard refresh to clear all cached data
-          window.location.replace("feeds.html");
-          window.location.reload(true);
-        }, 500);
-      } else {
-        // Fallback: Direct API call
-        const res = await fetch(`${backendBaseUrl}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        
-        const data = await res.json();
-        console.log('📡 Login response:', data);
-
-        if (!res.ok) {
-          throw new Error(data.msg || `Login failed with status: ${res.status}`);
-        }
-
-        if (data.token && data.user) {
-          console.log('✅ Login successful, saving user data...');
-          
-          const userWithToken = { 
-            ...data.user, 
-            token: data.token
-          }; 
-          
-          localStorage.setItem("user", JSON.stringify(userWithToken));
-
-          msgDiv.style.color = "green";
-          msgDiv.textContent = "Login successful! Redirecting...";
-          
-          setTimeout(() => {
-            window.location.href = "feeds.html";
-          }, 500);
-        } else {
-          throw new Error("No authentication token or user data received");
-        }
-      }
-    } catch (err) {
-      console.error('❌ Login error:', err);
-      msgDiv.style.color = "red";
-      msgDiv.textContent = err.message;
-      
-      if (loginBtn) {
-        loginBtn.disabled = false;
-        loginBtn.textContent = "Login";
-      }
-    }
-  });
-}
-
-// ===== Auto-redirect if already authenticated =====
-if (window.location.pathname.includes('login.html') || 
-    window.location.pathname.includes('register.html')) {
-  if (isAuthenticated()) {
-    const user = getCurrentUser();
-    console.log('🔄 User already authenticated, redirecting:', user?.email);
-    setTimeout(() => {
-      window.location.href = "feeds.html";
-    }, 100);
+    });
+  } catch (error) {
+    console.error('❌ Token refresh error:', error);
+    res.status(500).json({ msg: 'Server error during token refresh' });
   }
-}
+});
 
-// ===== Protect feed pages =====
-if (window.location.pathname.includes('feeds.html')) {
-  if (!isAuthenticated()) {
-    console.log('🚫 Not authenticated, redirecting to welcome page');
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 100);
-  } else {
-    const user = getCurrentUser();
-    console.log('🔐 User authenticated:', user?.name, user?.email, user?.role);
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user (invalidate token)
+ * @access  Private
+ */
+router.post('/logout', (req, res) => {
+  const authHeader = req.header('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(400).json({ msg: 'No token provided' });
   }
-}
 
-// ===== Make functions available globally =====
-window.auth = {
-  logout,
-  isAuthenticated,
-  getCurrentUser
-};
+  const token = authHeader.split(' ')[1];
+  addToBlacklist(token);
+  res.json({ msg: 'User logged out successfully' });
+});
 
-window.logout = logout;
 
-// ===== Debug function =====
-window.debugUser = function() {
-  const user = getCurrentUser();
-  console.log('👤 Current User Debug:', user);
-  console.log('🔐 Is Authenticated:', isAuthenticated());
-  console.log('💾 Storage Keys:', Object.keys(localStorage));
-  return user;
-};
+// Example endpoint
+router.put('/promote/:id', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role: req.body.role }, // 'active' or 'admin'
+      { new: true }
+    );
+    res.json({ msg: 'User role updated', user });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
+module.exports = router;
